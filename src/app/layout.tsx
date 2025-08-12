@@ -14,21 +14,26 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Z.ai Code Scaffold - AI-Powered Development",
-  description: "Modern Next.js scaffold optimized for AI-powered development with Z.ai. Built with TypeScript, Tailwind CSS, and shadcn/ui.",
-  keywords: ["Z.ai", "Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "AI development", "React"],
-  authors: [{ name: "Z.ai Team" }],
+  title: "Oak's Originals - Professor Oak's Personal Pokémon Collection",
+  description: "Professor Oak's personal collection of the original 151 Pokémon from the Kanto region. A modern, responsive digital Pokédex built with Next.js.",
+  keywords: ["Pokemon", "Pokedex", "Oak's Originals", "Kanto", "Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui"],
+  authors: [{ name: "Oak's Originals Team" }],
+  icons: {
+    icon: [
+      { url: '/pokeball.png', sizes: '1024x1024', type: 'image/png' },
+    ],
+    shortcut: '/pokeball.png',
+    apple: '/pokeball.png',
+  },
   openGraph: {
-    title: "Z.ai Code Scaffold",
-    description: "AI-powered development with modern React stack",
-    url: "https://chat.z.ai",
-    siteName: "Z.ai",
+    title: "Oak's Originals - Professor Oak's Personal Pokémon Collection",
+    description: "Explore the original 151 Pokémon from Professor Oak's personal collection in this modern digital Pokédex.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Z.ai Code Scaffold",
-    description: "AI-powered development with modern React stack",
+    title: "Oak's Originals - Professor Oak's Personal Pokémon Collection",
+    description: "Explore the original 151 Pokémon from Professor Oak's personal collection.",
   },
 };
 
