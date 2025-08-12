@@ -541,8 +541,7 @@ export default function Home() {
           </div>
         )}
       </div>
-    </div>
-      {/* Credits Section */}
+       {/* Credits Section */}
       <div className="mt-16 text-center">
         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 max-w-md mx-auto shadow-lg">
           <h3 className="text-lg font-semibold text-gray-800">Made with ❤️ by Xandred</h3>
@@ -551,7 +550,7 @@ export default function Home() {
           </p>
           <div className="flex justify-center gap-4 text-xs text-gray-500">
             <a
-              href="https://github.com/Tribal-Chief-001/Oak-s-Originals"
+              href="https://github.com/Tribal-Chief-001/Oaks-Originals"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-blue-600 transition-colors"
@@ -570,5 +569,6 @@ export default function Home() {
           </div>
         </div>
       </div>
+    </div>
   )
 }
