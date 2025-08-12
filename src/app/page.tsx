@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Search, Loader2, SortAsc, SortDesc } from "lucide-react"
+import { Search, Loader2, SortAsc, SortDesc, Github, Twitter } from "lucide-react"
 
 interface Pokemon {
   id: number
@@ -236,6 +236,29 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-7xl mx-auto">
+        {/* Top Right Social Links */}
+        <div className="flex justify-end mb-4">
+          <div className="flex gap-3">
+            <a
+              href="https://github.com/Tribal-Chief-001/Oaks-Originals"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 hover:bg-gray-50 group"
+              title="View on GitHub"
+            >
+              <Github className="w-5 h-5 text-gray-700 group-hover:text-gray-900 transition-colors" />
+            </a>
+            <a
+              href="https://x.com/Nighlok__King" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 hover:bg-blue-50 group"
+              title="Follow on X (Twitter)"
+            >
+              <Twitter className="w-5 h-5 text-gray-700 group-hover:text-blue-500 transition-colors" />
+            </a>
+          </div>
+        </div>
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-800 mb-2">
@@ -519,5 +542,33 @@ export default function Home() {
         )}
       </div>
     </div>
+      {/* Credits Section */}
+      <div className="mt-16 text-center">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 max-w-md mx-auto shadow-lg">
+          <h3 className="text-lg font-semibold text-gray-800">Made with ❤️ by Xandred</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Built with Next.js, TypeScript, and Tailwind CSS
+          </p>
+          <div className="flex justify-center gap-4 text-xs text-gray-500">
+            <a
+              href="https://github.com/Tribal-Chief-001/Oak-s-Originals"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-blue-600 transition-colors"
+            >
+              View Source
+            </a>
+            <span>•</span>
+            <a
+              href="https://pokeapi.co/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-blue-600 transition-colors"
+            >
+              Data by PokéAPI
+            </a>
+          </div>
+        </div>
+      </div>
   )
 }
