@@ -540,35 +540,36 @@ export default function Home() {
             </Card>
           </div>
         )}
-      </div>
-       {/* Credits Section */}
-      <div className="mt-16 text-center">
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 max-w-md mx-auto shadow-lg">
-          <h3 className="text-lg font-semibold text-gray-800">Made with ❤️ by Xandred</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Built with Next.js, TypeScript, and Tailwind CSS
-          </p>
-          <div className="flex justify-center gap-4 text-xs text-gray-500">
-            <a
-              href="https://github.com/Tribal-Chief-001/Oaks-Originals"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-blue-600 transition-colors"
-            >
-              View Source
-            </a>
-            <span>•</span>
-            <a
-              href="https://pokeapi.co/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-blue-600 transition-colors"
-            >
-              Data by PokéAPI
-            </a>
+        
+        {/* Credits Section */}
+        <div className="mt-16 text-center">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 max-w-md mx-auto shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Made with ❤️ by Xandred</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Built with Next.js, TypeScript, and Tailwind CSS
+            </p>
+            <div className="flex justify-center gap-4 text-xs text-gray-500">
+              <a
+                href="https://github.com/Tribal-Chief-001/Oaks-Originals"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-blue-600 transition-colors"
+              >
+                View Source
+              </a>
+              <span>•</span>
+              <a
+                href="https://pokeapi.co/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-blue-600 transition-colors"
+              >
+                Data by PokéAPI
+              </a>
+            </div>
           </div>
         </div>
       </div>
-    
+    </div>
   )
 }
