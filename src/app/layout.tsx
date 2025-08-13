@@ -18,6 +18,14 @@ export const metadata: Metadata = {
   description: "Professor Oak's personal collection of the original 151 Pokémon. Complete Kanto region Pokédex with advanced search, filtering, and detailed information.",
   keywords: ["Pokémon", "Pokédex", "Kanto", "Professor Oak", "151 Pokémon", "Pokémon Red", "Pokémon Blue", "Pokémon Yellow"],
   authors: [{ name: "Xandred" }],
+  icons: {
+    icon: [
+      { url: '/pokeball.png', sizes: '1024x1024', type: 'image/png' },
+    ],
+    shortcut: '/pokeball.png',
+    apple: '/pokeball.png',
+  }, 
+  
   openGraph: {
     title: "Oak's Originals - Kanto Pokédex",
     description: "Complete Kanto region Pokédex featuring all 151 original Pokémon with detailed information and evolution chains.",
