@@ -14,21 +14,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Z.ai Code Scaffold - AI-Powered Development",
-  description: "Modern Next.js scaffold optimized for AI-powered development with Z.ai. Built with TypeScript, Tailwind CSS, and shadcn/ui.",
-  keywords: ["Z.ai", "Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "AI development", "React"],
-  authors: [{ name: "Z.ai Team" }],
+  title: "Oak's Originals - Kanto Pokédex",
+  description: "Professor Oak's personal collection of the original 151 Pokémon. Complete Kanto region Pokédex with advanced search, filtering, and detailed information.",
+  keywords: ["Pokémon", "Pokédex", "Kanto", "Professor Oak", "151 Pokémon", "Pokémon Red", "Pokémon Blue", "Pokémon Yellow"],
+  authors: [{ name: "Xandred" }],
   openGraph: {
-    title: "Z.ai Code Scaffold",
-    description: "AI-powered development with modern React stack",
-    url: "https://chat.z.ai",
-    siteName: "Z.ai",
+    title: "Oak's Originals - Kanto Pokédex",
+    description: "Complete Kanto region Pokédex featuring all 151 original Pokémon with detailed information and evolution chains.",
+    url: "https://github.com/Tribal-Chief-001/Oaks-Originals",
+    siteName: "Oak's Originals",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Z.ai Code Scaffold",
-    description: "AI-powered development with modern React stack",
+    title: "Oak's Originals - Kanto Pokédex",
+    description: "Complete Kanto region Pokédex featuring all 151 original Pokémon.",
   },
 };
 
