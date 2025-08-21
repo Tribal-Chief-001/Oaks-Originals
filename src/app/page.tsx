@@ -352,6 +352,47 @@ export default function Home() {
     }))
   }
 
+  // Helper function to parse evolution chain
+  const parseEvolutionChain = async (chain: any) => {
+    const evolutions: any[] = []
+    
+    const parseChain = async (currentChain: any, method: string = 'Start') => {
+      if (!currentChain) return
+      
+      const pokemonResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${currentChain.species.name}`)
+      const pokemonData = await pokemonResponse.json()
+      
+      evolutions.push({
+        id: pokemonData.id,
+        name: currentChain.species.name.charAt(0).toUpperCase() + currentChain.species.name.slice(1),
+        image: pokemonData.sprites.other['official-artwork'].front_default,
+        method: method
+      })
+      
+      if (currentChain.evolves_to.length > 0) {
+        for (const evolution of currentChain.evolves_to) {
+          let evolutionMethod = 'Level up'
+          if (evolution.evolution_details.length > 0) {
+            const details = evolution.evolution_details[0]
+            if (details.min_level) {
+              evolutionMethod = `Level ${details.min_level}`
+            } else if (details.item) {
+              evolutionMethod = details.item.name.replace('-', ' ').charAt(0).toUpperCase() + details.item.name.replace('-', ' ').slice(1)
+            } else if (details.trigger.name === 'trade') {
+              evolutionMethod = 'Trade'
+            } else if (details.happiness) {
+              evolutionMethod = 'High Friendship'
+            }
+          }
+          await parseChain(evolution, evolutionMethod)
+        }
+      }
+    }
+    
+    await parseChain(chain)
+    return evolutions
+  }
+
   // Fetch all Pokémon from API
   useEffect(() => {
     const fetchAllPokemon = async () => {
@@ -499,7 +540,7 @@ export default function Home() {
               image: pokemonData.sprites.other['official-artwork'].front_default,
               shinyImage: pokemonData.sprites.other['official-artwork'].front_shiny,
               stats: pokemonData.stats.map((stat: { stat: { name: string }; base_stat: number }) => ({
-                name: stat.stat.name.replace('-', '-'),
+                name: stat.stat.name,
                 value: stat.base_stat
               })),
               evolutionChain: evolutionChain,
@@ -859,47 +900,6 @@ export default function Home() {
     return evolution[id] || 'Evolution method varies by species'
   }
 
-  // Helper function to parse evolution chain
-  const parseEvolutionChain = async (chain: any) => {
-    const evolutions: any[] = []
-    
-    const parseChain = async (currentChain: any, method: string = 'Start') => {
-      if (!currentChain) return
-      
-      const pokemonResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${currentChain.species.name}`)
-      const pokemonData = await pokemonResponse.json()
-      
-      evolutions.push({
-        id: pokemonData.id,
-        name: currentChain.species.name.charAt(0).toUpperCase() + currentChain.species.name.slice(1),
-        image: pokemonData.sprites.other['official-artwork'].front_default,
-        method: method
-      })
-      
-      if (currentChain.evolves_to.length > 0) {
-        for (const evolution of currentChain.evolves_to) {
-          let evolutionMethod = 'Level up'
-          if (evolution.evolution_details.length > 0) {
-            const details = evolution.evolution_details[0]
-            if (details.min_level) {
-              evolutionMethod = `Level ${details.min_level}`
-            } else if (details.item) {
-              evolutionMethod = details.item.name.replace('-', ' ').charAt(0).toUpperCase() + details.item.name.replace('-', ' ').slice(1)
-            } else if (details.trigger.name === 'trade') {
-              evolutionMethod = 'Trade'
-            } else if (details.happiness) {
-              evolutionMethod = 'High Friendship'
-            }
-          }
-          await parseChain(evolution, evolutionMethod)
-        }
-      }
-    }
-    
-    await parseChain(chain)
-    return evolutions
-  }
-
   // Initialize dark mode from localStorage
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('darkMode')
@@ -1062,11 +1062,7 @@ export default function Home() {
       // Stat filtering - Skip filtering for Pokemon with missing stat data
       if (pokemon.stats && pokemon.stats.length > 0) {
         const getStatValue = (statName: string) => {
-          const stat = pokemon.stats.find(s => 
-            s.name === statName || 
-            s.name === statName.replace('-', '-') ||
-            s.name.includes(statName)
-          )
+          const stat = pokemon.stats.find(s => s.name === statName)
           return stat?.value || 0
         }
 
