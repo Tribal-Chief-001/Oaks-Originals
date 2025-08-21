@@ -134,5 +134,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Built with ❤️ using Next.js and the power of TypeScript**
+**Z_org & roo_code🚀**
 
 *"See? This is the Pokédex I was telling you about!"* - Professor Oak
