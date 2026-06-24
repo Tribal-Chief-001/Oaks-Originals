@@ -1,0 +1,57 @@
+import { NextResponse } from 'next/server'
+import { db } from '@/lib/db'
+
+export async function GET() {
+  try {
+    const entries = await db.pokedexTracker.findMany()
+    const trackerMap: Record<number, any> = {}
+    entries.forEach(entry => {
+      trackerMap[entry.pokemonId] = {
+        caught: entry.caught,
+        seen: entry.seen,
+        shiny: entry.shiny,
+        caughtDate: entry.caughtDate?.toISOString(),
+        notes: entry.notes
+      }
+    })
+    return NextResponse.json(trackerMap)
+  } catch (error) {
+    console.error('Error fetching tracker data:', error)
+    return NextResponse.json({ error: 'Failed to fetch tracker data' }, { status: 500 })
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const { pokemonId, seen, caught, shiny, notes } = await request.json()
+    if (typeof pokemonId !== 'number') {
+      return NextResponse.json({ error: 'Invalid Pokemon ID' }, { status: 400 })
+    }
+
+    const caughtDate = caught ? new Date() : null
+
+    const entry = await db.pokedexTracker.upsert({
+      where: { pokemonId },
+      update: {
+        seen: !!seen,
+        caught: !!caught,
+        shiny: !!shiny,
+        notes: notes || null,
+        caughtDate
+      },
+      create: {
+        pokemonId,
+        seen: !!seen,
+        caught: !!caught,
+        shiny: !!shiny,
+        notes: notes || null,
+        caughtDate
+      }
+    })
+
+    return NextResponse.json(entry)
+  } catch (error) {
+    console.error('Error updating tracker entry:', error)
+    return NextResponse.json({ error: 'Failed to update tracker entry' }, { status: 500 })
+  }
+}

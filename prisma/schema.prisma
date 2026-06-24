@@ -9,24 +9,62 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Pokemon {
+  id                  Int      @id
+  name                String
+  types               String[]
+  height              Int
+  weight              Int
+  image               String
+  shinyImage          String
+  category            String
+  baseFriendship      Int?
+  baseExperience      Int?
+  catchRate           Int?
+  genderRatio         String?
+  eggCycles           Int?
+  stats               Json
+  abilities           Json
+  hiddenAbilities     Json
+  eggGroups           Json
+  naturalHabitat      Json
+  abilityDescriptions Json?
+  statRatings         Json?
+  learnset            Json?
+  competitive         Json?
+  flavorText          Json?
+  trivia              Json?
+  advancedMechanics   Json?
+  evolutionChain      Json
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
-model Post {
+model Favorite {
   id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
+  pokemonId Int      @unique
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+}
+
+model PokedexTracker {
+  pokemonId  Int      @id
+  seen       Boolean  @default(false)
+  caught     Boolean  @default(false)
+  shiny      Boolean  @default(false)
+  caughtDate DateTime?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model SavedTeam {
+  id         String   @id @default(cuid())
+  name       String
+  pokemonIds Int[]
+  createdAt  DateTime @default(now())
 }
