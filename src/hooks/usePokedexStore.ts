@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { toast } from 'sonner'
 
 export interface Pokemon {
   id: number
@@ -396,23 +397,64 @@ export const usePokedexStore = create<PokedexState>((set, get) => ({
     set({ loading: true })
     try {
       // 1. Fetch Pokemon Cache
-      const pkRes = await fetch('/api/pokemon')
-      const pkData = await pkRes.json()
-      
+      let pokemon: Pokemon[] = []
+      try {
+        const pkRes = await fetch('/api/pokemon')
+        if (pkRes.ok) {
+          const pkData = await pkRes.json()
+          pokemon = pkData.pokemon || []
+        } else {
+          console.error('Failed to fetch Pokemon: Status', pkRes.status)
+        }
+      } catch (e) {
+        console.error('Error parsing Pokemon data:', e)
+      }
+
       // 2. Fetch Favorites
-      const favRes = await fetch('/api/favorites')
-      const favData = await favRes.json()
-      
+      let favorites: number[] = []
+      try {
+        const favRes = await fetch('/api/favorites')
+        if (favRes.ok) {
+          favorites = await favRes.json()
+        }
+      } catch (e) {
+        console.error('Error fetching favorites:', e)
+      }
+
       // 3. Fetch Tracker Entries
-      const trRes = await fetch('/api/tracker')
-      const trData = await trRes.json()
-      
+      let pokedexData: Record<number, any> = {}
+      try {
+        const trRes = await fetch('/api/tracker')
+        if (trRes.ok) {
+          pokedexData = await trRes.json()
+        }
+      } catch (e) {
+        console.error('Error fetching tracker data:', e)
+      }
+
       // 4. Fetch Saved Teams
-      const tmRes = await fetch('/api/teams')
-      const tmData = await tmRes.json()
-      
-      const pokemon = pkData.pokemon || []
-      
+      let savedTeams: any[] = []
+      try {
+        const tmRes = await fetch('/api/teams')
+        if (tmRes.ok) {
+          const tmData = await tmRes.json()
+          if (Array.isArray(tmData)) {
+            savedTeams = tmData.map((t: any) => ({
+              id: t.id,
+              name: t.name,
+              pokemonIds: t.pokemonIds,
+              createdAt: t.createdAt
+            }))
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching saved teams:', e)
+      }
+
+      if (pokemon.length === 0) {
+        toast.error('Failed to load Pokémon database. Please check your Supabase connection settings.')
+      }
+
       let soundEnabled = false
       let soundVolume = 0.5
       if (typeof window !== 'undefined') {
@@ -420,24 +462,19 @@ export const usePokedexStore = create<PokedexState>((set, get) => ({
         const savedVolume = localStorage.getItem('pokedex_soundVolume')
         if (savedVolume) soundVolume = parseFloat(savedVolume)
       }
-      
+
       set({
         pokemon,
-        favorites: favData,
-        pokedexData: trData,
-        savedTeams: tmData.map((t: any) => ({
-          id: t.id,
-          name: t.name,
-          pokemonIds: t.pokemonIds,
-          createdAt: t.createdAt
-        })),
+        favorites,
+        pokedexData,
+        savedTeams,
         soundEnabled,
         soundVolume,
         loading: false
       })
       get().applyFilters()
     } catch (e) {
-      console.error('Error fetching initial Dex data:', e)
+      console.error('Error in fetchInitialData:', e)
       set({ loading: false })
     }
   },
