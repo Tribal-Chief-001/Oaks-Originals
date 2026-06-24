@@ -121,27 +121,6 @@
   }
 }
 
-/* Custom Webkit Scrollbars (sleek, thin, and rounded) */
-::-webkit-scrollbar {
-  width: 6px !important;
-  height: 6px !important;
-}
-::-webkit-scrollbar-track {
-  background: transparent !important;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.25) !important;
-  border-radius: 9999px !important;
-}
-.dark ::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.15) !important;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.4) !important;
-}
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.25) !important;
-}
 
 @utility scrollbar-none {
   -ms-overflow-style: none !important;
