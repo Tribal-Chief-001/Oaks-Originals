@@ -4,9 +4,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-  Heart, Plus, X, Info, Users, Zap, BarChart3, BookOpen, MapPin, ChevronDown, Loader2
+  Heart, Plus, X, Info, Users, Zap, BarChart3, BookOpen, MapPin, ChevronDown, Loader2, Sparkles, Scale, Ruler, Star, ShieldAlert, Volume2
 } from 'lucide-react'
 import { usePokedexStore, Pokemon } from '@/hooks/usePokedexStore'
+import { HolographicFoil } from './HolographicFoil'
 
 const kantoMapLocations: Record<string, { x: number; y: number; label: string }> = {
   "Pallet Town": { x: 2, y: 7, label: "Pallet Town" },
@@ -71,10 +72,28 @@ export const DetailModal: React.FC = () => {
     setShowShiny,
     setCalculatorAttackerId,
     setCalculatorMoveName,
-    setShowDamageCalculator
+    setShowDamageCalculator,
+    playClickSound,
+    playSuccessSound,
+    playCry
   } = usePokedexStore()
 
   const [selectedMoveName, setSelectedMoveName] = useState<string | null>(null)
+  const [tilt, setTilt] = useState({ x: 0, y: 0 })
+  const [isArtworkHovered, setIsArtworkHovered] = useState(false)
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget
+    const box = card.getBoundingClientRect()
+    const x = (e.clientX - box.left - box.width / 2) / (box.width / 2)
+    const y = (e.clientY - box.top - box.height / 2) / (box.height / 2)
+    setTilt({ x: x * 8, y: y * -8 })
+  }
+
+  const handleMouseLeave = () => {
+    setIsArtworkHovered(false)
+    setTilt({ x: 0, y: 0 })
+  }
   const [moveDetails, setMoveDetails] = useState<any | null>(null)
   const [loadingMove, setLoadingMove] = useState(false)
 
@@ -119,26 +138,26 @@ export const DetailModal: React.FC = () => {
 
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
-      grass: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-      poison: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-      fire: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-      flying: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-      water: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
-      bug: "bg-lime-100 text-lime-800 dark:bg-lime-900 dark:text-lime-200",
-      normal: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
-      electric: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-      ground: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
-      fairy: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
-      fighting: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-      psychic: "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200",
-      rock: "bg-stone-100 text-stone-800 dark:bg-stone-900 dark:text-stone-200",
-      ghost: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
-      ice: "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200",
-      dragon: "bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200",
-      dark: "bg-zinc-100 text-zinc-800 dark:bg-zinc-900 dark:text-zinc-200",
-      steel: "bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200"
+      grass: "bg-green-500/10 text-green-500 border-green-500/30",
+      poison: "bg-purple-500/10 text-purple-500 border-purple-500/30",
+      fire: "bg-red-500/10 text-red-500 border-red-500/30",
+      flying: "bg-blue-500/10 text-blue-500 border-blue-500/30",
+      water: "bg-cyan-500/10 text-cyan-500 border-cyan-500/30",
+      bug: "bg-lime-500/10 text-lime-500 border-lime-500/30",
+      normal: "bg-gray-500/10 text-gray-500 border-gray-500/30",
+      electric: "bg-yellow-500/10 text-yellow-500 border-yellow-500/30",
+      ground: "bg-amber-500/10 text-amber-500 border-amber-500/30",
+      fairy: "bg-pink-500/10 text-pink-500 border-pink-500/30",
+      fighting: "bg-orange-500/10 text-orange-500 border-orange-500/30",
+      psychic: "bg-rose-500/10 text-rose-500 border-rose-500/30",
+      rock: "bg-stone-500/10 text-stone-500 border-stone-500/30",
+      ghost: "bg-indigo-500/10 text-indigo-500 border-indigo-500/30",
+      ice: "bg-sky-500/10 text-sky-500 border-sky-500/30",
+      dragon: "bg-violet-500/10 text-violet-500 border-violet-500/30",
+      dark: "bg-zinc-500/10 text-zinc-500 border-zinc-500/30",
+      steel: "bg-slate-500/10 text-slate-500 border-slate-500/30"
     }
-    return colors[type] || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+    return colors[type] || "bg-gray-500/10 text-gray-500 border-gray-500/30"
   }
 
   const getTypeIcon = (type: string) => {
@@ -157,6 +176,30 @@ export const DetailModal: React.FC = () => {
     if (value >= 70) return "Average"
     if (value >= 50) return "Below Average"
     return "Low"
+  }
+
+  const getTypeAccentColor = (type: string) => {
+    const colors: Record<string, string> = {
+      grass: "rgba(34,197,94,0.12)",
+      poison: "rgba(168,85,247,0.12)",
+      fire: "rgba(239,68,68,0.12)",
+      flying: "rgba(59,130,246,0.12)",
+      water: "rgba(6,182,212,0.12)",
+      bug: "rgba(132,204,22,0.12)",
+      normal: "rgba(156,163,175,0.12)",
+      electric: "rgba(234,179,8,0.12)",
+      ground: "rgba(245,158,11,0.12)",
+      fairy: "rgba(244,114,182,0.12)",
+      fighting: "rgba(249,115,22,0.12)",
+      psychic: "rgba(244,63,94,0.12)",
+      rock: "rgba(120,113,108,0.12)",
+      ghost: "rgba(99,102,241,0.12)",
+      ice: "rgba(14,165,233,0.12)",
+      dragon: "rgba(139,92,246,0.12)",
+      dark: "rgba(63,63,70,0.12)",
+      steel: "rgba(100,116,139,0.12)"
+    };
+    return colors[type] || "rgba(59,130,246,0.12)";
   }
 
   const getTypeEffectiveness = (attackingType: string, defendingTypes: string[]) => {
@@ -207,61 +250,76 @@ export const DetailModal: React.FC = () => {
   }
 
   const getEffectivenessColor = (m: number) => {
-    if (m === 0) return 'text-gray-500 bg-gray-100 dark:bg-gray-800'
-    if (m === 0.25) return 'text-green-700 bg-green-100 dark:bg-green-950 dark:text-green-300'
-    if (m === 0.5) return 'text-green-600 bg-green-50 dark:bg-green-900/50 dark:text-green-400'
-    if (m === 2) return 'text-red-600 bg-red-50 dark:bg-red-900/50 dark:text-red-400'
-    if (m === 4) return 'text-red-700 bg-red-100 dark:bg-red-950 dark:text-red-300'
-    return 'text-gray-500 bg-gray-50 dark:bg-gray-800/50'
+    if (m === 0) return 'text-gray-500 bg-gray-150/40 dark:bg-gray-800/40'
+    if (m === 0.25) return 'text-green-700 bg-green-100/40 dark:bg-green-950/40 dark:text-green-300'
+    if (m === 0.5) return 'text-green-600 bg-green-50/40 dark:bg-green-900/20 dark:text-green-400'
+    if (m === 2) return 'text-red-600 bg-red-50/40 dark:bg-red-900/20 dark:text-red-400'
+    if (m === 4) return 'text-red-700 bg-red-100/40 dark:bg-red-950/40 dark:text-red-300'
+    return 'text-gray-500 bg-gray-50/40 dark:bg-gray-850/40'
   }
 
   const totalBaseStats = selectedPokemon.stats?.reduce((sum, stat) => sum + stat.value, 0) || 0
+  const primaryType = selectedPokemon.types[0] || 'normal'
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <Card className={`max-w-6xl w-full max-h-[90vh] overflow-y-auto border-2 shadow-2xl ${darkMode ? 'bg-gray-800 border-gray-700' : 'border-blue-200'}`}>
-        <CardHeader className={`pb-4 ${darkMode ? 'bg-gradient-to-r from-gray-800 to-gray-900' : 'bg-gradient-to-r from-blue-50 to-indigo-100'}`}>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+      
+      {/* Johnny Ive Split Card Container */}
+      <Card className={`max-w-6xl w-full h-[92vh] lg:h-[86vh] flex flex-col overflow-hidden border border-zinc-200/20 dark:border-zinc-800/80 shadow-2xl rounded-2xl ${
+        darkMode ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-800'
+      }`}>
+        
+        {/* TOP-LEVEL HEADER AREA (Full-Width) */}
+        <div className="px-6 pt-6 pb-4 border-b border-zinc-200 dark:border-zinc-800/80 shrink-0">
           <div className="flex justify-between items-start">
-            <div className="flex-1">
-              <CardTitle className={`text-3xl capitalize ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                {selectedPokemon.name}
-              </CardTitle>
-              <CardDescription className={`text-lg ${darkMode ? 'text-gray-300' : ''}`}>
+            <div>
+              <div className="flex items-center gap-3">
+                <h2 className="text-3xl font-extrabold capitalize tracking-tight">{selectedPokemon.name}</h2>
+                <button
+                  onClick={() => playCry(selectedPokemon.id)}
+                  title="Play Cry"
+                  className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 hover:text-zinc-300 transition-colors"
+                >
+                  <Volume2 className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-sm font-semibold text-zinc-450 dark:text-zinc-400 mt-1">
                 #{selectedPokemon.id.toString().padStart(3, '0')} • {selectedPokemon.category || 'Pokémon'}
-              </CardDescription>
+              </p>
             </div>
+            
             <div className="flex gap-2">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => toggleFavorite(selectedPokemon.id)}
-                className={`h-8 w-8 p-0 rounded-full ${isFav ? 'text-red-500' : darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-200'}`}
+                onClick={() => { playSuccessSound(); toggleFavorite(selectedPokemon.id); }}
+                className={`h-9 w-9 p-0 rounded-full ${isFav ? 'text-red-500' : 'text-zinc-500'}`}
               >
-                <Heart className={`w-4 h-4 ${isFav ? 'fill-current' : ''}`} />
+                <Heart className={`w-5 h-5 ${isFav ? 'fill-current' : ''}`} />
               </Button>
               {compareMode && compareList.length < 2 && !compareList.find(p => p.id === selectedPokemon.id) && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => addToCompare(selectedPokemon)}
-                  className={`h-8 w-8 p-0 rounded-full ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-200'}`}
+                  onClick={() => { playSuccessSound(); addToCompare(selectedPokemon); }}
+                  className="h-9 w-9 p-0 rounded-full text-zinc-500"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-5 h-5" />
                 </Button>
               )}
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setSelectedPokemon(null)}
-                className={`h-8 w-8 p-0 rounded-full ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-200'}`}
+                onClick={() => { playClickSound(); setSelectedPokemon(null); }}
+                className="h-9 w-9 p-0 rounded-full hover:bg-red-500/10 text-zinc-500 hover:text-red-500"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </Button>
             </div>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="flex flex-wrap gap-2 mt-4 border-b border-gray-200 dark:border-gray-600">
+          {/* Sleek Horizontal Tab Bar Carousel */}
+          <div className="flex gap-1 overflow-x-auto scrollbar-none mt-4 -mx-2 px-2 pb-1 shrink-0">
             {[
               { id: 'overview', label: 'Overview', icon: Info },
               { id: 'biology', label: 'Biology', icon: Users },
@@ -277,696 +335,794 @@ export const DetailModal: React.FC = () => {
             ].map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
-                onClick={() => setActiveTab(id)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-t-lg text-sm font-medium transition-colors ${
+                onClick={() => { playClickSound(); setActiveTab(id); }}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-all duration-200 whitespace-nowrap border shrink-0 ${
                   activeTab === id
-                    ? `${darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'}`
-                    : `${darkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'}`
+                    ? 'bg-indigo-650 text-white dark:bg-indigo-650 dark:text-white border-transparent shadow-sm'
+                    : 'text-zinc-500 border-transparent hover:text-zinc-800 dark:hover:text-zinc-200'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-3.5 h-3.5" />
                 {label}
               </button>
             ))}
           </div>
-        </CardHeader>
-        
-        <CardContent className="p-6">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="space-y-6"
-          >
+        </div>
+
+        {/* BOTTOM CONTENT AREA (Split Layout) */}
+        <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+          
+          {/* LEFT PORTRAIT SIDEBAR (1/3 Width) */}
+          <div className="w-full lg:w-1/3 p-6 flex flex-col justify-start border-b lg:border-b-0 lg:border-r border-zinc-200 dark:border-zinc-800/80 relative overflow-y-auto shrink-0 bg-gradient-to-b from-transparent to-zinc-100/10 dark:to-zinc-900/5">
             
-            {/* Overview Tab */}
-            {activeTab === 'overview' && (
-              <div className="grid lg:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div className="text-center">
-                    <div className={`rounded-xl p-6 mb-4 ${darkMode ? 'bg-gradient-to-br from-gray-700 to-gray-800' : 'bg-gradient-to-br from-blue-50 to-indigo-100'}`}>
-                      <img
-                        src={showShiny ? selectedPokemon.shinyImage : selectedPokemon.image}
-                        alt={selectedPokemon.name}
-                        className="w-full h-64 object-contain mx-auto"
-                      />
-                    </div>
-                    <div className="flex justify-center gap-4">
-                      <Button
-                        variant={showShiny ? "outline" : "default"}
-                        size="sm"
-                        onClick={() => setShowShiny(false)}
-                      >
-                        Normal
-                      </Button>
-                      <Button
-                        variant={showShiny ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setShowShiny(true)}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                      >
-                        ✨ Shiny
-                      </Button>
-                    </div>
-                  </div>
+            {/* Accent Glow Backdrops */}
+            <div 
+              className="absolute inset-0 pointer-events-none blur-3xl opacity-30 rounded-full scale-125" 
+              style={{ backgroundColor: getTypeAccentColor(primaryType) }}
+            />
 
-                  <div>
-                    <h3 className={`font-semibold text-lg mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Types</h3>
-                    <div className="flex flex-wrap gap-3">
-                      {selectedPokemon.types.map((type) => (
-                        <Badge
-                          key={type}
-                          variant="secondary"
-                          className={`capitalize text-sm py-2 px-3 ${getTypeColor(type)}`}
-                        >
-                          <span className="mr-2 text-lg">{getTypeIcon(type)}</span>
-                          {type}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
+            {/* Left Column Content */}
+            <div className="relative z-10 flex flex-col space-y-5">
+              
+              {/* Premium Floating Holographic Artwork Frame */}
+              <div 
+                className="relative w-full aspect-square max-w-[260px] mx-auto rounded-2xl border border-zinc-200/20 dark:border-zinc-800/80 bg-zinc-100/10 dark:bg-zinc-950/20 backdrop-blur-md shadow-inner flex items-center justify-center group overflow-hidden cursor-pointer"
+                onMouseMove={handleMouseMove}
+                onMouseEnter={() => setIsArtworkHovered(true)}
+                onMouseLeave={handleMouseLeave}
+              >
+                {/* Shiny Sparkle ambient backdrops */}
+                {showShiny && (
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(234,179,8,0.1)_0%,_transparent_70%)] animate-pulse" />
+                )}
+                
+                {/* Holographic foil Reacting to cursor tilt */}
+                <HolographicFoil isHovered={isArtworkHovered} mousePos={{ x: tilt.x / 8, y: tilt.y / 8 }} />
 
-                  <div>
-                    <h3 className={`font-semibold text-lg mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Physical Characteristics</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className={`rounded-lg p-3 ${darkMode ? 'bg-gray-700' : 'bg-gray-55'}`}>
-                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Height</p>
-                        <p className={`font-semibold ${darkMode ? 'text-white' : ''}`}>{formatHeight(selectedPokemon.height)}</p>
-                      </div>
-                      <div className={`rounded-lg p-3 ${darkMode ? 'bg-gray-700' : 'bg-gray-55'}`}>
-                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Weight</p>
-                        <p className={`font-semibold ${darkMode ? 'text-white' : ''}`}>{formatWeight(selectedPokemon.weight)}</p>
-                      </div>
-                    </div>
+                <img
+                  src={showShiny ? selectedPokemon.shinyImage : selectedPokemon.image}
+                  alt={selectedPokemon.name}
+                  className="w-[82%] h-[82%] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.15)] group-hover:scale-105 transition-transform duration-300 relative z-20"
+                />
+              </div>
+
+              {/* Segmented control for Normal vs Shiny */}
+              <div className="flex bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/20 dark:border-zinc-800/80 p-0.5 rounded-full mt-2 mx-auto max-w-[180px] w-full text-xxs">
+                <button
+                  onClick={() => { playClickSound(); setShowShiny(false); }}
+                  className={`flex-1 py-1 px-3 rounded-full font-bold transition-all duration-200 ${
+                    !showShiny 
+                      ? 'bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900 shadow-sm' 
+                      : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                  }`}
+                >
+                  Normal
+                </button>
+                <button
+                  onClick={() => { playClickSound(); setShowShiny(true); }}
+                  className={`flex-1 py-1 px-3 rounded-full font-bold transition-all duration-200 flex items-center justify-center gap-1 ${
+                    showShiny 
+                      ? 'bg-yellow-500 text-white shadow-sm' 
+                      : 'text-zinc-500 hover:text-yellow-500'
+                  }`}
+                >
+                  <Sparkles className="w-2.5 h-2.5" />
+                  Shiny
+                </button>
+              </div>
+
+              {/* Types Indicators */}
+              <div className="pt-2">
+                <h4 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-505 mb-2.5 uppercase tracking-widest">Types</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedPokemon.types.map((type) => (
+                    <Badge
+                      key={type}
+                      variant="outline"
+                      className={`capitalize text-xs font-semibold py-1.5 px-3.5 rounded-full border ${getTypeColor(type)}`}
+                    >
+                      <span className="mr-1.5">{getTypeIcon(type)}</span>
+                      {type}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Physical Characteristics Cards */}
+              <div className="pt-2">
+                <h4 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-550 mb-2.5 uppercase tracking-widest">Physical Characteristics</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-xl p-3.5 border border-zinc-200/20 dark:border-zinc-800/80 bg-zinc-100/5 dark:bg-zinc-950/20 flex flex-col justify-between min-h-[68px]">
+                    <span className="text-xxs font-bold text-zinc-550 flex items-center gap-1">
+                      <Ruler className="w-3 h-3" />
+                      HEIGHT
+                    </span>
+                    <span className="text-xs font-extrabold mt-1.5">{formatHeight(selectedPokemon.height)}</span>
+                  </div>
+                  <div className="rounded-xl p-3.5 border border-zinc-200/20 dark:border-zinc-800/80 bg-zinc-100/5 dark:bg-zinc-950/20 flex flex-col justify-between min-h-[68px]">
+                    <span className="text-xxs font-bold text-zinc-555 flex items-center gap-1">
+                      <Scale className="w-3 h-3" />
+                      WEIGHT
+                    </span>
+                    <span className="text-xs font-extrabold mt-1.5">{formatWeight(selectedPokemon.weight)}</span>
                   </div>
                 </div>
+              </div>
 
-                <div className="space-y-6">
-                  <div>
-                    <h3 className={`font-semibold text-lg mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Core Identification</h3>
-                    <div className={`rounded-lg p-4 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>National Dex:</span>
-                          <span className={`ml-2 font-medium ${darkMode ? 'text-white' : ''}`}>#{selectedPokemon.id.toString().padStart(3, '0')}</span>
-                        </div>
-                        <div>
-                          <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Kanto Dex:</span>
-                          <span className={`ml-2 font-medium ${darkMode ? 'text-white' : ''}`}>#{selectedPokemon.id.toString().padStart(3, '0')}</span>
-                        </div>
-                        {selectedPokemon.category && (
-                          <div className="col-span-2">
-                            <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Category:</span>
-                            <span className={`ml-2 font-medium ${darkMode ? 'text-white' : ''}`}>{selectedPokemon.category}</span>
+            </div>
+          </div>
+
+          {/* RIGHT DETAILS TAB INTERFACE (2/3 Width) */}
+          <div className="w-full lg:w-2/3 flex flex-col h-full overflow-hidden bg-zinc-50/20 dark:bg-zinc-950/5">
+            
+            {/* Tab Content Body (Scroll Isolated) */}
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+                className="space-y-6"
+              >
+                
+                {/* 1. OVERVIEW TAB */}
+                {activeTab === 'overview' && (
+                  <div className="space-y-6">
+                    {/* Row 1: Core ID & Stats rating side-by-side */}
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className={`rounded-xl p-5 border ${
+                        darkMode ? 'bg-zinc-900/50 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
+                      }`}>
+                        <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4">Core Identification</h4>
+                        <div className="space-y-3 text-xs">
+                          <div className="flex justify-between items-center border-b border-zinc-200/10 dark:border-zinc-800/50 pb-2">
+                            <span className="text-zinc-500 font-medium">National Dex</span>
+                            <span className="font-extrabold font-mono">#{selectedPokemon.id.toString().padStart(3, '0')}</span>
                           </div>
-                        )}
+                          <div className="flex justify-between items-center border-b border-zinc-200/10 dark:border-zinc-800/50 pb-2">
+                            <span className="text-zinc-500 font-medium">Kanto Dex</span>
+                            <span className="font-extrabold font-mono">#{selectedPokemon.id.toString().padStart(3, '0')}</span>
+                          </div>
+                          {selectedPokemon.category && (
+                            <div className="flex justify-between items-center border-b border-zinc-200/10 dark:border-zinc-800/50 pb-2">
+                              <span className="text-zinc-505 font-medium">Category</span>
+                              <span className="font-extrabold capitalize">{selectedPokemon.category}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between items-center">
+                            <span className="text-zinc-550 font-medium">Egg Groups</span>
+                            <span className="font-extrabold capitalize">{selectedPokemon.eggGroups?.join(" / ") || 'Unknown'}</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
 
-                  <div>
-                    <h3 className={`font-semibold text-lg mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Base Stats Total</h3>
-                    <div className={`rounded-lg p-4 ${darkMode ? 'bg-gray-700' : 'bg-gray-55'}`}>
-                      <div className="text-center">
-                        <div className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{totalBaseStats}</div>
-                        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                          {getStatRating(totalBaseStats / 6)}
+                      <div className={`rounded-xl p-5 border flex flex-col justify-between ${
+                        darkMode ? 'bg-zinc-900/50 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
+                      }`}>
+                        <div>
+                          <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Base Stats Total</h4>
+                          <div className="text-center py-2">
+                            <span className="text-5xl font-black tracking-tight">{totalBaseStats}</span>
+                          </div>
+                        </div>
+                        <div className="text-xs font-semibold text-zinc-455 dark:text-zinc-400 border-t border-zinc-200/10 dark:border-zinc-800/50 pt-3 flex justify-between items-center">
+                          <span>Classification:</span>
+                          <span className="text-red-505 font-extrabold">{getStatRating(totalBaseStats / 6)}</span>
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <h3 className={`font-semibold text-lg mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Abilities</h3>
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap gap-2">
-                        {selectedPokemon.abilities.map((ability) => (
-                          <Badge key={ability} variant="outline" className={`capitalize ${darkMode ? 'border-gray-600 text-gray-200' : ''}`}>
-                            {ability.replace('-', ' ')}
-                          </Badge>
-                        ))}
-                      </div>
-                      {selectedPokemon.hiddenAbilities && selectedPokemon.hiddenAbilities.length > 0 && (
+                    {/* Row 2: Abilities Summary */}
+                    <div className={`rounded-xl p-5 border ${
+                      darkMode ? 'bg-zinc-900/50 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
+                    }`}>
+                      <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4">Abilities</h4>
+                      <div className="space-y-4">
                         <div>
-                          <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-1`}>Hidden:</p>
+                          <span className="text-xxs font-bold text-zinc-550 block mb-2 uppercase tracking-wide">Standard Combat Abilities</span>
                           <div className="flex flex-wrap gap-2">
-                            {selectedPokemon.hiddenAbilities.map((ability) => (
-                              <Badge key={ability} variant="secondary" className="capitalize text-xs">
+                            {selectedPokemon.abilities.map((ability) => (
+                              <Badge
+                                key={ability}
+                                variant="outline"
+                                className={`capitalize text-xs font-semibold py-1.5 px-3 rounded-xl border ${
+                                  darkMode ? 'border-zinc-800 text-zinc-200 bg-zinc-950/40' : 'border-zinc-200 text-zinc-800 bg-white'
+                                }`}
+                              >
                                 {ability.replace('-', ' ')}
                               </Badge>
                             ))}
                           </div>
                         </div>
+
+                        {selectedPokemon.hiddenAbilities && selectedPokemon.hiddenAbilities.length > 0 && (
+                          <div>
+                            <span className="text-xxs font-bold text-zinc-550 block mb-2 uppercase tracking-wide">Hidden Ability</span>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedPokemon.hiddenAbilities.map((ability) => (
+                                <Badge
+                                  key={ability}
+                                  className="bg-amber-600/10 hover:bg-amber-600/20 text-amber-500 border border-amber-600/30 capitalize text-xs font-semibold py-1.5 px-3 rounded-xl"
+                                >
+                                  {ability.replace('-', ' ')}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              {/* 2. BIOLOGY TAB */}
+              {activeTab === 'biology' && (
+                <div className="rounded-xl p-5 border border-zinc-200/20 dark:border-zinc-800/80 bg-zinc-100/5 dark:bg-zinc-950/20">
+                  <h3 className="font-bold text-md mb-4 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-blue-500" />
+                    Biological Profile
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-6 text-xs">
+                    <div className="space-y-3">
+                      <div className="flex justify-between border-b border-zinc-200/10 pb-2">
+                        <span className="text-zinc-455">Gender Distribution:</span>
+                        <span className="font-bold">{selectedPokemon.genderRatio || 'Unknown'}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-zinc-200/10 pb-2">
+                        <span className="text-zinc-455">Base Friendship Stat:</span>
+                        <span className="font-bold">{selectedPokemon.baseFriendship ?? 'Unknown'}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-zinc-200/10 pb-2">
+                        <span className="text-zinc-455">Wild Catch Rate:</span>
+                        <span className="font-bold">{selectedPokemon.catchRate ? `${selectedPokemon.catchRate}%` : 'Unknown'}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between border-b border-zinc-200/10 pb-2">
+                        <span className="text-zinc-455">Egg Cycles (Incubation):</span>
+                        <span className="font-bold">{selectedPokemon.eggCycles ? `${selectedPokemon.eggCycles} (${selectedPokemon.eggCycles * 255} steps)` : 'Unknown'}</span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-455 block mb-1.5">Natural Habitats:</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedPokemon.naturalHabitat?.map(h => (
+                            <Badge key={h} variant="secondary" className="capitalize text-xxs px-2 py-0.5">{h}</Badge>
+                          )) || 'Unknown'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 3. ABILITIES TAB */}
+              {activeTab === 'abilities' && (
+                <div className="space-y-4">
+                  <h3 className="font-bold text-md flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-yellow-500" />
+                    Abilities & Combat Traits
+                  </h3>
+                  <div className="space-y-3">
+                    {selectedPokemon.abilities.map((ability, index) => (
+                      <div key={ability} className="p-4 rounded-xl border border-zinc-200/20 dark:border-zinc-800/80 bg-zinc-100/5 dark:bg-zinc-950/20">
+                        <div className="flex justify-between items-center mb-1">
+                          <h4 className="font-extrabold capitalize text-xs">{ability.replace('-', ' ')}</h4>
+                          <Badge variant="outline" className="text-xxs uppercase">{index === 0 ? 'Primary' : 'Secondary'}</Badge>
+                        </div>
+                        <p className="text-xs text-zinc-400 leading-relaxed mt-1">
+                          {selectedPokemon.abilityDescriptions?.primary || 'Standard combat ability providing various battle effects.'}
+                        </p>
+                      </div>
+                    ))}
+                    {selectedPokemon.hiddenAbilities.map(ability => (
+                      <div key={ability} className="p-4 rounded-xl border-2 border-purple-500/20 bg-purple-500/5 dark:bg-purple-950/5">
+                        <div className="flex justify-between items-center mb-1">
+                          <h4 className="font-extrabold capitalize text-xs text-purple-600 dark:text-purple-400">{ability.replace('-', ' ')}</h4>
+                          <Badge className="bg-purple-500 text-xxs uppercase">Hidden</Badge>
+                        </div>
+                        <p className="text-xs text-zinc-400 leading-relaxed mt-1">
+                          {selectedPokemon.abilityDescriptions?.hidden || 'Rare ability obtained through specific breeding or transfer events.'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 4. STATS TAB */}
+              {activeTab === 'stats' && (
+                <div className="rounded-xl p-5 border border-zinc-200/20 dark:border-zinc-800/80 bg-zinc-100/5 dark:bg-zinc-950/20">
+                  <h3 className="font-bold text-md mb-4 flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-indigo-500" />
+                    Base Statistics
+                  </h3>
+                  <div className="space-y-4.5">
+                    {selectedPokemon.stats?.map(stat => {
+                      const maxValue = 255
+                      const percentage = (stat.value / maxValue) * 100
+                      return (
+                        <div key={stat.name} className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span className="capitalize font-bold text-zinc-400">{stat.name.replace('-', ' ')}</span>
+                            <span className="font-mono font-extrabold">{stat.value}</span>
+                          </div>
+                          <div className="w-full rounded-full h-2 bg-zinc-200 dark:bg-zinc-800">
+                            <div
+                              className="h-2 rounded-full bg-gradient-to-r from-red-600 to-red-500"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })}
+                    <div className="pt-3 border-t border-zinc-200/10 flex justify-between font-extrabold text-xs">
+                      <span>Stat Total:</span>
+                      <span className="text-red-500">{totalBaseStats} ({getStatRating(totalBaseStats / 6)})</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 5. EVOLUTION TAB */}
+              {activeTab === 'evolution' && (
+                <div className="rounded-xl p-5 border border-zinc-200/20 dark:border-zinc-800/80 bg-zinc-100/5 dark:bg-zinc-950/20 text-center">
+                  <h3 className="font-bold text-md mb-6 text-left flex items-center gap-2">
+                    <ChevronDown className="w-5 h-5 text-green-500 rotate-270" />
+                    Evolution Chain Timeline
+                  </h3>
+                  {selectedPokemon.evolutionChain && selectedPokemon.evolutionChain.length > 0 ? (
+                    <div className="flex flex-wrap items-center justify-center gap-5 py-4">
+                      {selectedPokemon.evolutionChain.map((evo, idx) => (
+                        <React.Fragment key={evo.id}>
+                          <div className="rounded-xl p-4 text-center min-w-[120px] border border-zinc-200/20 dark:border-zinc-850 bg-white dark:bg-zinc-900 shadow-sm flex flex-col items-center">
+                            <img src={evo.image} alt={evo.name} className="w-16 h-16 object-contain mb-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.1)]" />
+                            <p className="font-bold text-xs capitalize">{evo.name}</p>
+                            <p className="text-xxs text-zinc-500 font-mono mt-0.5">#{evo.id.toString().padStart(3, '0')}</p>
+                          </div>
+                          {idx < (selectedPokemon.evolutionChain?.length || 0) - 1 && (
+                            <div className="text-center flex flex-col items-center justify-center">
+                              <span className="text-lg text-zinc-400 font-extrabold leading-none animate-pulse">➔</span>
+                              <Badge className="bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 text-xxs scale-90 mt-1 whitespace-nowrap font-bold border border-zinc-200/20">
+                                {selectedPokemon.evolutionChain?.[idx + 1]?.method || 'Level Up'}
+                              </Badge>
+                            </div>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-zinc-500 py-6">This Pokémon has no known evolution stages.</p>
+                  )}
+                </div>
+              )}
+
+              {/* 6. MOVES TAB */}
+              {activeTab === 'moves' && (
+                <div className="rounded-xl p-5 border border-zinc-200/20 dark:border-zinc-800/80 bg-zinc-100/5 dark:bg-zinc-950/20">
+                  <h3 className="font-bold text-md mb-2 flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-red-500" />
+                    Moves Learndirectory
+                  </h3>
+                  <p className="text-xxs text-zinc-400 mb-4">Click any move to view parameters, power, accuracy, and load it into the Damage Calculator.</p>
+                  <div className="space-y-5">
+                    {selectedPokemon.learnset?.levelUp && selectedPokemon.learnset.levelUp.length > 0 && (
+                      <div>
+                        <h4 className="font-bold text-xs text-zinc-500 uppercase mb-2">Level Up Learnset</h4>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {selectedPokemon.learnset.levelUp.map((m, idx) => (
+                            <div
+                              key={idx}
+                              onClick={() => setSelectedMoveName(m.name)}
+                              className="p-2.5 rounded-lg border border-zinc-200/20 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs capitalize flex justify-between items-center cursor-pointer hover:border-red-500/50 hover:bg-red-500/5 transition-all duration-150"
+                            >
+                              <span className="font-bold">{m.name}</span>
+                              <Badge variant="outline" className="text-xxs tracking-wider border-zinc-200/20 font-bold">Lv.{m.level}</Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {selectedPokemon.learnset?.tmMoves && selectedPokemon.learnset.tmMoves.length > 0 && (
+                      <div>
+                        <h4 className="font-bold text-xs text-zinc-500 uppercase mb-2">TM/HM Learnset</h4>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedPokemon.learnset.tmMoves.map((m, idx) => (
+                            <Badge
+                              key={idx}
+                              variant="secondary"
+                              onClick={() => setSelectedMoveName(m)}
+                              className="capitalize text-xxs cursor-pointer hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                            >
+                              {m}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 7. COMPETITIVE TAB */}
+              {activeTab === 'competitive' && selectedPokemon.competitive && (
+                <div className="rounded-xl p-5 border border-zinc-200/20 dark:border-zinc-800/80 bg-zinc-100/5 dark:bg-zinc-950/20">
+                  <h3 className="font-bold text-md mb-4 flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-red-500" />
+                    Competitive Analysis (Gen I OU Meta)
+                  </h3>
+                  <div className="space-y-5">
+                    <div className="grid md:grid-cols-2 gap-6 text-xs">
+                      
+                      <div className="space-y-4">
+                        <div className="flex flex-wrap gap-4 border-b border-zinc-200/10 pb-3">
+                          <div>
+                            <span className="text-zinc-500 block mb-1">Smogon Tier</span>
+                            <Badge className="font-extrabold uppercase tracking-wide">{selectedPokemon.competitive.smogonTier}</Badge>
+                          </div>
+                          {selectedPokemon.competitive.usageRank && (
+                            <div>
+                              <span className="text-zinc-500 block mb-1">Live Usage Stats</span>
+                              <Badge variant="secondary" className="font-extrabold bg-green-500/10 text-green-500 border border-green-500/30">
+                                Rank #{selectedPokemon.competitive.usageRank} ({selectedPokemon.competitive.usagePercentage}%)
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <span className="text-zinc-550 block mb-1 font-bold">Standard Meta Roles:</span>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedPokemon.competitive.commonRoles.map((r, i) => (
+                              <Badge key={i} variant="outline" className="border-zinc-200/20">{r}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-zinc-550 block mb-1 font-bold">Optimal Attack Moves:</span>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedPokemon.competitive.optimalMovesets.map((m, i) => (
+                              <Badge key={i} variant="secondary" className="capitalize text-xxs">{m}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4 border border-zinc-200/20 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-xl">
+                        <span className="font-bold block mb-2 text-zinc-400">Defense Effectiveness:</span>
+                        {(() => {
+                          const matrix = getComprehensiveTypeEffectiveness(selectedPokemon.types)
+                          return (
+                            <div className="space-y-3 text-xxs">
+                              {matrix.weaknesses.length > 0 && (
+                                <div>
+                                  <p className="text-red-500 font-bold mb-1.5">Weaknesses (Takes 2x/4x):</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {matrix.weaknesses.map(w => (
+                                      <span key={w.type} className={`px-2 py-0.5 rounded capitalize font-bold ${getEffectivenessColor(w.multiplier)}`}>
+                                        {w.icon} {w.type} {w.multiplier}x
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              {matrix.resistances.length > 0 && (
+                                <div>
+                                  <p className="text-green-500 font-bold mb-1.5">Resistances (Takes 0.5x/0.25x):</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {matrix.resistances.map(r => (
+                                      <span key={r.type} className={`px-2 py-0.5 rounded capitalize font-bold ${getEffectivenessColor(r.multiplier)}`}>
+                                        {r.icon} {r.type} {r.multiplier}x
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              {matrix.immunities.length > 0 && (
+                                <div>
+                                  <p className="text-zinc-500 font-bold mb-1.5">Immunities (Takes 0x):</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {matrix.immunities.map(i => (
+                                      <span key={i.type} className={`px-2 py-0.5 rounded capitalize font-bold ${getEffectivenessColor(i.multiplier)}`}>
+                                        {i.icon} {i.type} 0x
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })()}
+                      </div>
+
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4 border-t border-zinc-200/10 pt-4 text-xs">
+                      <div>
+                        <h4 className="font-bold text-zinc-500 mb-1">Rival Counters</h4>
+                        <ul className="list-disc list-inside space-y-0.5 text-zinc-400">
+                          {selectedPokemon.competitive.counters.map((c, i) => (
+                            <li key={i} className="capitalize">{c}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-zinc-500 mb-1">Team Synergies</h4>
+                        <p className="text-zinc-400 leading-relaxed">{selectedPokemon.competitive.teamSynergy}</p>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
+              {/* 8. FLAVOR TEXT TAB */}
+              {activeTab === 'flavor' && selectedPokemon.flavorText && (
+                <div className="rounded-xl p-5 border border-zinc-200/20 dark:border-zinc-800/80 bg-zinc-100/5 dark:bg-zinc-950/20">
+                  <h3 className="font-bold text-md mb-4 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-amber-500" />
+                    Pokedex Logs (Original Gen I Journals)
+                  </h3>
+                  <div className="space-y-4 text-xs italic leading-relaxed">
+                    {selectedPokemon.flavorText.red && (
+                      <div className="p-3.5 border-l-4 border-red-500 bg-red-500/5 rounded-r">
+                        <p className="font-bold text-red-550 not-italic mb-1 font-mono text-xxs uppercase">Red / Blue Entry</p>
+                        "{selectedPokemon.flavorText.red}"
+                      </div>
+                    )}
+                    {selectedPokemon.flavorText.yellow && (
+                      <div className="p-3.5 border-l-4 border-yellow-500 bg-yellow-500/5 rounded-r">
+                        <p className="font-bold text-yellow-550 not-italic mb-1 font-mono text-xxs uppercase">Yellow Entry</p>
+                        "{selectedPokemon.flavorText.yellow}"
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 9. ENCOUNTERS TAB */}
+              {activeTab === 'encounters' && (
+                <div className="rounded-xl p-5 border border-zinc-200/20 dark:border-zinc-800/80 bg-zinc-100/5 dark:bg-zinc-950/20">
+                  <h3 className="font-bold text-md mb-4 flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-green-500" />
+                    Kanto Spawn Locations & Routes Map
+                  </h3>
+                  
+                  <div className="grid lg:grid-cols-12 gap-6">
+                    {/* Left Column: Interactive SVG Map */}
+                    <div className="lg:col-span-7 flex flex-col items-center justify-center bg-gray-950 rounded-xl p-4 shadow-inner relative overflow-hidden border border-gray-800 min-h-[280px]">
+                      <div className="absolute top-2 left-2 text-xxs font-semibold text-gray-500 bg-gray-900/80 px-2 py-0.5 rounded">
+                        Interactive Kanto Map Visualizer
+                      </div>
+                      
+                      <svg viewBox="0 0 520 420" className="w-full max-w-[480px] h-auto bg-transparent">
+                        {/* Connection Paths (Roads / Water routes) */}
+                        {[
+                          { from: "Pallet Town", to: "Route 1" },
+                          { from: "Route 1", to: "Viridian City" },
+                          { from: "Viridian City", to: "Route 2" },
+                          { from: "Route 2", to: "Viridian Forest" },
+                          { from: "Viridian Forest", to: "Pewter City" },
+                          { from: "Pewter City", to: "Route 3" },
+                          { from: "Route 3", to: "Mt Moon" },
+                          { from: "Mt Moon", to: "Route 4" },
+                          { from: "Route 4", to: "Cerulean City" },
+                          { from: "Cerulean City", to: "Route 24" },
+                          { from: "Route 24", to: "Route 25" },
+                          { from: "Cerulean City", to: "Route 5" },
+                          { from: "Route 5", to: "Saffron City" },
+                          { from: "Saffron City", to: "Route 6" },
+                          { from: "Route 6", to: "Vermilion City" },
+                          { from: "Celadon City", to: "Route 7" },
+                          { from: "Route 7", to: "Saffron City" },
+                          { from: "Saffron City", to: "Route 8" },
+                          { from: "Route 8", to: "Lavender Town" },
+                          { from: "Cerulean City", to: "Route 9" },
+                          { from: "Route 9", to: "Rock Tunnel" },
+                          { from: "Rock Tunnel", to: "Route 10" },
+                          { from: "Route 10", to: "Lavender Town" },
+                          { from: "Vermilion City", to: "Route 11" },
+                          { from: "Route 11", to: "Route 12" },
+                          { from: "Lavender Town", to: "Route 12" },
+                          { from: "Route 12", to: "Route 13" },
+                          { from: "Route 13", to: "Route 14" },
+                          { from: "Route 14", to: "Route 15" },
+                          { from: "Route 15", to: "Fuchsia City" },
+                          { from: "Celadon City", to: "Route 16" },
+                          { from: "Route 16", to: "Route 17" },
+                          { from: "Route 17", to: "Route 18" },
+                          { from: "Route 18", to: "Fuchsia City" },
+                          { from: "Fuchsia City", to: "Route 19" },
+                          { from: "Route 19", to: "Seafoam Islands" },
+                          { from: "Seafoam Islands", to: "Route 20" },
+                          { from: "Route 20", to: "Cinnabar Island" },
+                          { from: "Cinnabar Island", to: "Route 21" },
+                          { from: "Route 21", to: "Pallet Town" },
+                          { from: "Viridian City", to: "Route 22" },
+                          { from: "Route 22", to: "Route 23" },
+                          { from: "Route 23", to: "Victory Road" },
+                          { from: "Victory Road", to: "Indigo Plateau" },
+                        ].map((path, idx) => {
+                          const start = kantoMapLocations[path.from]
+                          const end = kantoMapLocations[path.to]
+                          if (!start || !end) return null
+                          
+                          const encountersList = (selectedPokemon.encounters as any[]) || []
+                          const isActive = encountersList.some(e => e.locationName === path.from) || encountersList.some(e => e.locationName === path.to)
+                          
+                          return (
+                            <line
+                              key={idx}
+                              x1={start.x * 50}
+                              y1={start.y * 40}
+                              x2={end.x * 50}
+                              y2={end.y * 40}
+                              stroke={isActive ? "#10B981" : "#374151"}
+                              strokeWidth={isActive ? 3 : 2}
+                              className="transition-all duration-300"
+                            />
+                          )
+                        })}
+
+                        {/* Map Nodes */}
+                        {Object.entries(kantoMapLocations).map(([locName, coord]) => {
+                          const encountersList = (selectedPokemon.encounters as any[]) || []
+                          const encounter = encountersList.find(e => e.locationName.toLowerCase().trim() === locName.toLowerCase().trim())
+                          const isActive = !!encounter
+                          const isCity = !locName.includes("Route") && !locName.includes("Forest") && !locName.includes("Tunnel") && !locName.includes("Islands") && !locName.includes("Cave") && !locName.includes("Road")
+                          
+                          return (
+                            <g key={locName}>
+                              <circle
+                                cx={coord.x * 50}
+                                cy={coord.y * 40}
+                                r={isCity ? 8 : 5}
+                                fill={isActive ? "#10B981" : isCity ? "#3B82F6" : "#4B5563"}
+                                className="transition-all duration-300 hover:scale-150 hover:stroke-white hover:stroke-2 cursor-pointer"
+                              />
+                              <title>{locName}{isActive ? " (Active spawn location)" : ""}</title>
+                            </g>
+                          )
+                        })}
+
+                        {/* Map Labels */}
+                        {Object.entries(kantoMapLocations).map(([locName, coord]) => {
+                          const isCity = !locName.includes("Route") && !locName.includes("Forest") && !locName.includes("Tunnel") && !locName.includes("Islands") && !locName.includes("Cave") && !locName.includes("Road")
+                          if (!isCity) return null
+                          
+                          return (
+                            <text
+                              key={locName}
+                              x={coord.x * 50}
+                              y={coord.y * 40 - 12}
+                              textAnchor="middle"
+                              fill="#9CA3AF"
+                              fontSize="8"
+                              fontWeight="bold"
+                              className="pointer-events-none select-none"
+                            >
+                              {coord.label}
+                            </text>
+                          )
+                        })}
+                      </svg>
+                    </div>
+                    
+                    {/* Right Column: Detailed spawn statistics */}
+                    <div className="lg:col-span-5 space-y-3.5 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin">
+                      <h4 className="text-xs font-bold text-zinc-500 uppercase">Wild Spawn Details</h4>
+                      
+                      {(!selectedPokemon.encounters || (selectedPokemon.encounters as any[]).length === 0) ? (
+                        <div className="p-4 rounded-xl text-center text-xs border border-zinc-200/20 bg-white dark:bg-zinc-900 text-zinc-450">
+                          {selectedPokemon.id === 150 ? 'Cerulean Cave (Post-Game, Direct interaction)' :
+                           selectedPokemon.id === 151 ? 'Special Event Distribution Only' :
+                           selectedPokemon.id <= 9 ? 'Starter choices from Professor Oak' :
+                           'No standard wild encounters available.'}
+                        </div>
+                      ) : (
+                        ((selectedPokemon.encounters as any[])).map((enc: any, idx: number) => (
+                          <div key={idx} className="p-3 rounded-xl border border-zinc-250/20 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xxs">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="font-extrabold capitalize text-xs">
+                                📍 {enc.locationName}
+                              </span>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              {enc.versions.map((v: any, vIdx: number) => (
+                                <div key={vIdx} className="border-t border-zinc-200/10 pt-2 first:border-0 first:pt-0">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <Badge className={
+                                      v.version === 'Red' ? 'bg-red-500/10 text-red-500 hover:bg-red-500/10 border-red-500/30' :
+                                      v.version === 'Blue' ? 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/10 border-blue-500/30' :
+                                      'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/10 border-yellow-500/30'
+                                    } variant="outline">
+                                      {v.version} version
+                                    </Badge>
+                                    <span className="text-zinc-500 font-bold">Max Chance: {v.maxChance}%</span>
+                                  </div>
+                                  
+                                  <div className="pl-2 space-y-1 text-zinc-400">
+                                    {v.methods.map((m: any, mIdx: number) => (
+                                      <div key={mIdx} className="flex justify-between">
+                                        <span className="capitalize">• {m.method} (Lv. {m.minLevel === m.maxLevel ? m.minLevel : `${m.minLevel}-${m.maxLevel}`})</span>
+                                        <span>Chance: {m.chance}%</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))
                       )}
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Biology Tab */}
-            {activeTab === 'biology' && (
-              <div className={`rounded-lg p-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                <h3 className={`font-semibold text-xl mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Biological Profile</h3>
-                <div className="grid md:grid-cols-2 gap-6 text-sm">
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Gender Ratio:</span>
-                      <span className="font-medium">{selectedPokemon.genderRatio || 'Unknown'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Base Friendship:</span>
-                      <span className="font-medium">{selectedPokemon.baseFriendship ?? 'Unknown'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Base Experience:</span>
-                      <span className="font-medium">{selectedPokemon.baseExperience ?? 'Unknown'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Catch Rate:</span>
-                      <span className="font-medium">{selectedPokemon.catchRate ? `${selectedPokemon.catchRate}%` : 'Unknown'}</span>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <span className="text-gray-500 block mb-1">Egg Groups:</span>
-                      <div className="flex flex-wrap gap-1">
-                        {selectedPokemon.eggGroups?.map(g => (
-                          <Badge key={g} variant="outline" className="capitalize text-xs">{g}</Badge>
-                        )) || 'Unknown'}
-                      </div>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Egg Cycles:</span>
-                      <span className="font-medium">{selectedPokemon.eggCycles ? `${selectedPokemon.eggCycles} (${selectedPokemon.eggCycles * 255} steps)` : 'Unknown'}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 block mb-1">Habitat:</span>
-                      <div className="flex flex-wrap gap-1">
-                        {selectedPokemon.naturalHabitat?.map(h => (
-                          <Badge key={h} variant="secondary" className="capitalize text-xs">{h}</Badge>
-                        )) || 'Unknown'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Abilities Tab */}
-            {activeTab === 'abilities' && (
-              <div className={`rounded-lg p-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                <h3 className={`font-semibold text-xl mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Abilities & Traits</h3>
-                <div className="space-y-4">
-                  {selectedPokemon.abilities.map((ability, index) => (
-                    <div key={ability} className={`p-4 rounded-lg ${darkMode ? 'bg-gray-600' : 'bg-white'}`}>
-                      <h4 className="font-semibold capitalize mb-1">{ability.replace('-', ' ')} {index === 0 ? '(Primary)' : '(Secondary)'}</h4>
-                      <p className="text-sm text-gray-500">
-                        {selectedPokemon.abilityDescriptions?.primary || 'Standard combat ability providing various battle effects.'}
-                      </p>
-                    </div>
-                  ))}
-                  {selectedPokemon.hiddenAbilities.map(ability => (
-                    <div key={ability} className={`p-4 rounded-lg border-2 ${darkMode ? 'bg-gray-600 border-purple-500' : 'bg-white border-purple-200'}`}>
-                      <h4 className="font-semibold capitalize text-purple-600 dark:text-purple-400 mb-1">{ability.replace('-', ' ')} (Hidden)</h4>
-                      <p className="text-sm text-gray-500">
-                        {selectedPokemon.abilityDescriptions?.hidden || 'Rare ability obtained through specific event or breeding mechanisms.'}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Stats Tab */}
-            {activeTab === 'stats' && (
-              <div className={`rounded-lg p-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                <h3 className={`font-semibold text-xl mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Base Statistics</h3>
-                <div className="space-y-4">
-                  {selectedPokemon.stats?.map(stat => {
-                    const maxValue = 255
-                    const percentage = (stat.value / maxValue) * 100
-                    return (
-                      <div key={stat.name} className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="capitalize font-medium">{stat.name.replace('-', ' ')}</span>
-                          <span className="font-semibold">{stat.value}</span>
-                        </div>
-                        <div className={`w-full rounded-full h-3 ${darkMode ? 'bg-gray-600' : 'bg-gray-250'}`}>
-                          <div
-                            className="h-3 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600"
-                            style={{ width: `${percentage}%` }}
-                          />
-                        </div>
-                      </div>
-                    )
-                  })}
-                  <div className="pt-4 border-t flex justify-between font-bold">
-                    <span>Stat Total</span>
-                    <span>{totalBaseStats} ({getStatRating(totalBaseStats / 6)})</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Evolution Tab */}
-            {activeTab === 'evolution' && (
-              <div className={`rounded-lg p-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                <h3 className={`font-semibold text-xl mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Evolution Chain</h3>
-                {selectedPokemon.evolutionChain && selectedPokemon.evolutionChain.length > 0 ? (
-                  <div className="flex flex-wrap items-center justify-center gap-6">
-                    {selectedPokemon.evolutionChain.map((evo, idx) => (
-                      <React.Fragment key={evo.id}>
-                        <div className={`rounded-lg p-4 text-center min-w-[130px] ${darkMode ? 'bg-gray-600' : 'bg-white'}`}>
-                          <img src={evo.image} alt={evo.name} className="w-20 h-20 object-contain mx-auto mb-1" />
-                          <p className="font-semibold text-sm capitalize">{evo.name}</p>
-                          <p className="text-xs text-gray-500">#{evo.id.toString().padStart(3, '0')}</p>
-                        </div>
-                        {idx < (selectedPokemon.evolutionChain?.length || 0) - 1 && (
-                          <div className="text-center font-bold text-gray-400">
-                            <span>➔</span>
-                            <p className="text-xxs font-medium max-w-[80px] leading-tight text-gray-500 mt-1">
-                              {selectedPokemon.evolutionChain?.[idx + 1]?.method}
-                            </p>
-                          </div>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500">This Pokémon does not evolve.</p>
-                )}
-              </div>
-            )}
-
-            {/* Moves Tab */}
-            {activeTab === 'moves' && (
-              <div className={`rounded-lg p-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-55'}`}>
-                <h3 className={`font-semibold text-xl mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Move Learnset</h3>
-                <p className="text-xs text-gray-400 mb-4">Click any move to view detailed stats, power, accuracy, and load it into the Damage Calculator.</p>
-                <div className="space-y-6">
-                  {selectedPokemon.learnset?.levelUp && selectedPokemon.learnset.levelUp.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-md mb-2">Level Up Moves (Gen I Red/Blue)</h4>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {selectedPokemon.learnset.levelUp.map((m, idx) => (
-                          <div
-                            key={idx}
-                            onClick={() => setSelectedMoveName(m.name)}
-                            className={`p-2 rounded border text-xs capitalize flex justify-between cursor-pointer transition-all duration-300 hover:scale-102 hover:border-blue-400 hover:shadow-sm ${
-                              darkMode ? 'bg-gray-600 border-gray-500 hover:bg-gray-500 text-white' : 'bg-white hover:bg-blue-50'
-                            }`}
-                          >
-                            <span>{m.name}</span>
-                            <span className="font-bold text-gray-400">Lv. {m.level}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {selectedPokemon.learnset?.tmMoves && selectedPokemon.learnset.tmMoves.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-md mb-2">TM Moves</h4>
-                      <div className="flex flex-wrap gap-1">
-                        {selectedPokemon.learnset.tmMoves.map((m, idx) => (
-                          <Badge
-                            key={idx}
-                            variant="secondary"
-                            onClick={() => setSelectedMoveName(m)}
-                            className="capitalize text-xxs cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
-                          >
-                            {m}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Competitive Tab */}
-            {activeTab === 'competitive' && selectedPokemon.competitive && (
-              <div className={`rounded-lg p-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                <h3 className={`font-semibold text-xl mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Competitive Analysis</h3>
-                <div className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6 text-sm">
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap gap-3">
-                        <div>
-                          <span className="text-gray-400 block mb-1">Smogon Tier:</span>
-                          <Badge variant="outline" className="font-bold">{selectedPokemon.competitive.smogonTier}</Badge>
-                        </div>
-                        {selectedPokemon.competitive.usageRank && (
-                          <div>
-                            <span className="text-gray-400 block mb-1">Smogon Usage Rank:</span>
-                            <Badge variant="secondary" className="font-bold">
-                              #{selectedPokemon.competitive.usageRank} ({selectedPokemon.competitive.usagePercentage}%)
-                            </Badge>
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <span className="text-gray-400 block mb-1">Roles:</span>
-                        <div className="flex flex-wrap gap-1">
-                          {selectedPokemon.competitive.commonRoles.map((r, i) => (
-                            <Badge key={i} variant="secondary">{r}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <span className="text-gray-400 block mb-1">Optimal Moveset:</span>
-                        <div className="flex flex-wrap gap-1">
-                          {selectedPokemon.competitive.optimalMovesets.map((m, i) => (
-                            <Badge key={i} variant="outline" className="capitalize">{m}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="font-semibold block mb-2">Type Effectiveness Mapping:</span>
-                      {(() => {
-                        const matrix = getComprehensiveTypeEffectiveness(selectedPokemon.types)
-                        return (
-                          <div className="space-y-3">
-                            {matrix.weaknesses.length > 0 && (
-                              <div>
-                                <p className="text-xs text-red-500 font-bold mb-1">Weaknesses (Extra Damage):</p>
-                                <div className="flex flex-wrap gap-1">
-                                  {matrix.weaknesses.map(w => (
-                                    <span key={w.type} className={`px-2 py-0.5 rounded text-xxs capitalize font-bold ${getEffectivenessColor(w.multiplier)}`}>
-                                      {w.icon} {w.type} {w.multiplier}x
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {matrix.resistances.length > 0 && (
-                              <div>
-                                <p className="text-xs text-green-500 font-bold mb-1">Resistances (Reduced Damage):</p>
-                                <div className="flex flex-wrap gap-1">
-                                  {matrix.resistances.map(r => (
-                                    <span key={r.type} className={`px-2 py-0.5 rounded text-xxs capitalize font-bold ${getEffectivenessColor(r.multiplier)}`}>
-                                      {r.icon} {r.type} {r.multiplier}x
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {matrix.immunities.length > 0 && (
-                              <div>
-                                <p className="text-xs text-gray-500 font-bold mb-1">Immunities (No Damage):</p>
-                                <div className="flex flex-wrap gap-1">
-                                  {matrix.immunities.map(i => (
-                                    <span key={i.type} className={`px-2 py-0.5 rounded text-xxs capitalize font-bold ${getEffectivenessColor(i.multiplier)}`}>
-                                      {i.icon} {i.type} 0x
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })()}
-                    </div>
-                  </div>
-                  
-                  <div className="grid md:grid-cols-2 gap-6 pt-4 border-t text-sm">
-                    <div>
-                      <h4 className="font-semibold text-gray-400 mb-1">Counters</h4>
-                      <ul className="list-disc list-inside space-y-0.5">
-                        {selectedPokemon.competitive.counters.map((c, i) => (
-                          <li key={i}>{c}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-400 mb-1">Team Synergy</h4>
-                      <p>{selectedPokemon.competitive.teamSynergy}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Flavor Text Tab */}
-            {activeTab === 'flavor' && selectedPokemon.flavorText && (
-              <div className={`rounded-lg p-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-55'}`}>
-                <h3 className={`font-semibold text-xl mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Pokedex Entries</h3>
-                <div className="space-y-4 text-sm italic">
-                  {selectedPokemon.flavorText.red && (
-                    <div className="p-3 border-l-4 border-red-500 bg-white/5">
-                      <p className="font-bold text-red-500 not-italic text-xs mb-1">Pokémon Red & Blue</p>
-                      "{selectedPokemon.flavorText.red}"
-                    </div>
-                  )}
-                  {selectedPokemon.flavorText.yellow && (
-                    <div className="p-3 border-l-4 border-yellow-500 bg-white/5">
-                      <p className="font-bold text-yellow-500 not-italic text-xs mb-1">Pokémon Yellow</p>
-                      "{selectedPokemon.flavorText.yellow}"
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Encounters Tab */}
-            {activeTab === 'encounters' && (
-              <div className={`rounded-lg p-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                <h3 className={`font-semibold text-xl mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Kanto Spawn Locations & Routes Map</h3>
-                
-                <div className="grid lg:grid-cols-12 gap-6">
-                  {/* Left Column: Interactive SVG Map */}
-                  <div className="lg:col-span-7 flex flex-col items-center justify-center bg-gray-950 rounded-xl p-4 shadow-inner relative overflow-hidden border border-gray-800">
-                    <div className="absolute top-2 left-2 text-xs font-semibold text-gray-500 bg-gray-900/80 px-2 py-1 rounded">
-                      Interactive Kanto Map Visualizer
-                    </div>
-                    
-                    <svg viewBox="0 0 520 420" className="w-full max-w-[480px] h-auto bg-transparent">
-                      {/* Connection Paths (Roads / Water routes) */}
-                      {[
-                        { from: "Pallet Town", to: "Route 1" },
-                        { from: "Route 1", to: "Viridian City" },
-                        { from: "Viridian City", to: "Route 2" },
-                        { from: "Route 2", to: "Viridian Forest" },
-                        { from: "Viridian Forest", to: "Pewter City" },
-                        { from: "Pewter City", to: "Route 3" },
-                        { from: "Route 3", to: "Mt Moon" },
-                        { from: "Mt Moon", to: "Route 4" },
-                        { from: "Route 4", to: "Cerulean City" },
-                        { from: "Cerulean City", to: "Route 24" },
-                        { from: "Route 24", to: "Route 25" },
-                        { from: "Cerulean City", to: "Route 5" },
-                        { from: "Route 5", to: "Saffron City" },
-                        { from: "Saffron City", to: "Route 6" },
-                        { from: "Route 6", to: "Vermilion City" },
-                        { from: "Celadon City", to: "Route 7" },
-                        { from: "Route 7", to: "Saffron City" },
-                        { from: "Saffron City", to: "Route 8" },
-                        { from: "Route 8", to: "Lavender Town" },
-                        { from: "Cerulean City", to: "Route 9" },
-                        { from: "Route 9", to: "Rock Tunnel" },
-                        { from: "Rock Tunnel", to: "Route 10" },
-                        { from: "Route 10", to: "Lavender Town" },
-                        { from: "Vermilion City", to: "Route 11" },
-                        { from: "Route 11", to: "Route 12" },
-                        { from: "Lavender Town", to: "Route 12" },
-                        { from: "Route 12", to: "Route 13" },
-                        { from: "Route 13", to: "Route 14" },
-                        { from: "Route 14", to: "Route 15" },
-                        { from: "Route 15", to: "Fuchsia City" },
-                        { from: "Celadon City", to: "Route 16" },
-                        { from: "Route 16", to: "Route 17" },
-                        { from: "Route 17", to: "Route 18" },
-                        { from: "Route 18", to: "Fuchsia City" },
-                        { from: "Fuchsia City", to: "Route 19" },
-                        { from: "Route 19", to: "Seafoam Islands" },
-                        { from: "Seafoam Islands", to: "Route 20" },
-                        { from: "Route 20", to: "Cinnabar Island" },
-                        { from: "Cinnabar Island", to: "Route 21" },
-                        { from: "Route 21", to: "Pallet Town" },
-                        { from: "Viridian City", to: "Route 22" },
-                        { from: "Route 22", to: "Route 23" },
-                        { from: "Route 23", to: "Victory Road" },
-                        { from: "Victory Road", to: "Indigo Plateau" },
-                      ].map((path, idx) => {
-                        const start = kantoMapLocations[path.from]
-                        const end = kantoMapLocations[path.to]
-                        if (!start || !end) return null
-                        
-                        const encountersList = (selectedPokemon.encounters as any[]) || []
-                        const isActive = encountersList.some(e => e.locationName === path.from) || encountersList.some(e => e.locationName === path.to)
-                        
-                        return (
-                          <line
-                            key={idx}
-                            x1={start.x * 50}
-                            y1={start.y * 40}
-                            x2={end.x * 50}
-                            y2={end.y * 40}
-                            stroke={isActive ? "#10B981" : "#374151"}
-                            strokeWidth={isActive ? 3 : 2}
-                            className="transition-all duration-300"
-                          />
-                        )
-                      })}
-
-                      {/* Map Nodes */}
-                      {Object.entries(kantoMapLocations).map(([locName, coord]) => {
-                        const encountersList = (selectedPokemon.encounters as any[]) || []
-                        const encounter = encountersList.find(e => e.locationName.toLowerCase().trim() === locName.toLowerCase().trim())
-                        const isActive = !!encounter
-                        const isCity = !locName.includes("Route") && !locName.includes("Forest") && !locName.includes("Tunnel") && !locName.includes("Islands") && !locName.includes("Cave") && !locName.includes("Road")
-                        
-                        return (
-                          <g key={locName}>
-                            <circle
-                              cx={coord.x * 50}
-                              cy={coord.y * 40}
-                              r={isCity ? 8 : 5}
-                              fill={isActive ? "#10B981" : isCity ? "#3B82F6" : "#4B5563"}
-                              className="transition-all duration-300 hover:scale-150 hover:stroke-white hover:stroke-2 cursor-pointer"
-                            />
-                            <title>{locName}{isActive ? " (Active spawn location)" : ""}</title>
-                          </g>
-                        )
-                      })}
-
-                      {/* Map Labels */}
-                      {Object.entries(kantoMapLocations).map(([locName, coord]) => {
-                        const isCity = !locName.includes("Route") && !locName.includes("Forest") && !locName.includes("Tunnel") && !locName.includes("Islands") && !locName.includes("Cave") && !locName.includes("Road")
-                        if (!isCity) return null
-                        
-                        return (
-                          <text
-                            key={locName}
-                            x={coord.x * 50}
-                            y={coord.y * 40 - 12}
-                            textAnchor="middle"
-                            fill="#9CA3AF"
-                            fontSize="8"
-                            fontWeight="bold"
-                            className="pointer-events-none select-none"
-                          >
-                            {coord.label}
-                          </text>
-                        )
-                      })}
-                    </svg>
-                  </div>
-                  
-                  {/* Right Column: Detailed spawn statistics */}
-                  <div className="lg:col-span-5 space-y-4 max-h-[360px] overflow-y-auto pr-2">
-                    <h4 className={`text-sm font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Wild Spawn Details</h4>
-                    
-                    {(!selectedPokemon.encounters || (selectedPokemon.encounters as any[]).length === 0) ? (
-                      <div className={`p-4 rounded-lg text-center ${darkMode ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-500'}`}>
-                        {selectedPokemon.id === 150 ? 'Cerulean Cave (Post-Game, Direct interaction)' :
-                         selectedPokemon.id === 151 ? 'Special Event Distribution Only' :
-                         selectedPokemon.id <= 9 ? 'Starter choices from Professor Oak' :
-                         'No standard wild encounters available.'}
-                      </div>
-                    ) : (
-                      ((selectedPokemon.encounters as any[])).map((enc: any, idx: number) => (
-                        <div key={idx} className={`p-3 rounded-lg border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200 shadow-sm'}`}>
-                          <div className="flex justify-between items-center mb-2">
-                            <span className={`font-semibold capitalize ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                              📍 {enc.locationName}
-                            </span>
-                          </div>
-                          
-                          <div className="space-y-2 text-xs">
-                            {enc.versions.map((v: any, vIdx: number) => (
-                              <div key={vIdx} className="border-t border-gray-700/50 pt-2 first:border-0 first:pt-0">
-                                <div className="flex items-center justify-between mb-1">
-                                  <Badge className={
-                                    v.version === 'Red' ? 'bg-red-500/10 text-red-500 hover:bg-red-500/10 border-red-500/30' :
-                                    v.version === 'Blue' ? 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/10 border-blue-500/30' :
-                                    'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/10 border-yellow-500/30'
-                                  } variant="outline">
-                                    {v.version} version
-                                  </Badge>
-                                  <span className="text-gray-400">Max Chance: {v.maxChance}%</span>
-                                </div>
-                                
-                                <div className="pl-2 space-y-1 text-gray-400">
-                                  {v.methods.map((m: any, mIdx: number) => (
-                                    <div key={mIdx} className="flex justify-between">
-                                      <span className="capitalize">• {m.method} (Lv. {m.minLevel === m.maxLevel ? m.minLevel : `${m.minLevel}-${m.maxLevel}`})</span>
-                                      <span>Chance: {m.chance}%</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Trivia Tab */}
-            {activeTab === 'trivia' && selectedPokemon.trivia && (
-              <div className={`rounded-lg p-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                <h3 className={`font-semibold text-xl mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Trivia & History</h3>
-                <div className="space-y-4 text-sm">
+              {/* 10. TRIVIA TAB */}
+              {activeTab === 'trivia' && selectedPokemon.trivia && (
+                <div className="rounded-xl p-5 border border-zinc-200/20 dark:border-zinc-800/80 bg-zinc-100/5 dark:bg-zinc-950/20 text-xs space-y-4">
+                  <h3 className="font-bold text-md flex items-center gap-2">
+                    <Info className="w-5 h-5 text-blue-500" />
+                    Trivia & Species Origins
+                  </h3>
                   <div>
-                    <h4 className="font-semibold text-gray-400 mb-1">Design Origin</h4>
-                    <p>{selectedPokemon.trivia.designOrigin}</p>
+                    <h4 className="font-bold text-zinc-500 uppercase text-xxs mb-1">Design Origin</h4>
+                    <p className="leading-relaxed text-zinc-400">{selectedPokemon.trivia.designOrigin}</p>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-400 mb-1">Name Etymology</h4>
-                    <p className="capitalize">{selectedPokemon.trivia.nameEtymology}</p>
+                    <h4 className="font-bold text-zinc-500 uppercase text-xxs mb-1">Name Etymology</h4>
+                    <p className="capitalize leading-relaxed text-zinc-400">{selectedPokemon.trivia.nameEtymology}</p>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-400 mb-1">Developer Trivia</h4>
-                    <p>{selectedPokemon.trivia.developerTrivia}</p>
+                    <h4 className="font-bold text-zinc-500 uppercase text-xxs mb-1">Developer Trivia Logs</h4>
+                    <p className="leading-relaxed text-zinc-400">{selectedPokemon.trivia.developerTrivia}</p>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Mechanics Tab */}
-            {activeTab === 'mechanics' && selectedPokemon.advancedMechanics && (
-              <div className={`rounded-lg p-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                <h3 className={`font-semibold text-xl mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Advanced Mechanics</h3>
-                <div className="grid md:grid-cols-2 gap-6 text-sm">
-                  <div>
-                    <h4 className="font-semibold text-gray-400 mb-1">Hidden Power Calculations</h4>
-                    <p>{selectedPokemon.advancedMechanics.hiddenPowerRange}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-400 mb-1">Breeding Quirks</h4>
-                    <p>{selectedPokemon.advancedMechanics.breedingQuirks}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-400 mb-1">Form Triggers</h4>
-                    <p>{selectedPokemon.advancedMechanics.formChangeTriggers}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-400 mb-1">Generation-to-Generation Shifts</h4>
-                    <p>{selectedPokemon.advancedMechanics.statChanges}</p>
+              {/* 11. MECHANICS TAB */}
+              {activeTab === 'mechanics' && selectedPokemon.advancedMechanics && (
+                <div className="rounded-xl p-5 border border-zinc-200/20 dark:border-zinc-800/80 bg-zinc-100/5 dark:bg-zinc-950/20 text-xs">
+                  <h3 className="font-bold text-md mb-4 flex items-center gap-2">
+                    <ShieldAlert className="w-5 h-5 text-purple-500" />
+                    Advanced Combat Mechanics
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-6 leading-relaxed">
+                    <div>
+                      <h4 className="font-bold text-zinc-500 uppercase text-xxs mb-1">Hidden Power Calculations</h4>
+                      <p className="text-zinc-400">{selectedPokemon.advancedMechanics.hiddenPowerRange}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-zinc-500 uppercase text-xxs mb-1">Breeding Quirks</h4>
+                      <p className="text-zinc-400">{selectedPokemon.advancedMechanics.breedingQuirks}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-zinc-500 uppercase text-xxs mb-1">Form Triggers</h4>
+                      <p className="text-zinc-400">{selectedPokemon.advancedMechanics.formChangeTriggers}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-zinc-500 uppercase text-xxs mb-1">Generation Stat Shifts</h4>
+                      <p className="text-zinc-400">{selectedPokemon.advancedMechanics.statChanges}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-          </motion.div>
-        </CardContent>
-      </Card>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+
+    </Card>
 
       {/* Move Details Drawer */}
       {selectedMoveName && (
         <div className={`fixed inset-y-0 right-0 w-80 border-l shadow-2xl p-6 z-50 flex flex-col transition-all duration-300 ${
-          darkMode ? 'bg-gray-850 border-gray-700 text-white animate-in slide-in-from-right' : 'bg-white border-gray-200 text-gray-800 animate-in slide-in-from-right'
+          darkMode ? 'bg-zinc-950 border-zinc-850 text-white animate-in slide-in-from-right' : 'bg-white border-zinc-200 text-zinc-800 animate-in slide-in-from-right'
         }`}>
           <div className="flex justify-between items-center mb-6">
-            <h3 className="font-bold text-lg capitalize">
+            <h3 className="font-extrabold text-md capitalize">
               {selectedMoveName}
             </h3>
             <Button
@@ -981,44 +1137,44 @@ export const DetailModal: React.FC = () => {
 
           {loadingMove ? (
             <div className="flex-1 flex items-center justify-center">
-              <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+              <Loader2 className="w-6 h-6 animate-spin text-red-500" />
             </div>
           ) : moveDetails ? (
-            <div className="flex-1 space-y-6 text-sm overflow-y-auto">
-              <div className="grid grid-cols-2 gap-4">
-                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                  <span className="text-gray-400 block text-xs mb-1">Type</span>
-                  <Badge className="capitalize">{moveDetails.type}</Badge>
+            <div className="flex-1 space-y-5 text-xs overflow-y-auto pr-1">
+              <div className="grid grid-cols-2 gap-3">
+                <div className={`p-3 rounded-xl border ${darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-50 border-zinc-200/50'}`}>
+                  <span className="text-zinc-500 block text-xxs font-bold uppercase mb-1">Type</span>
+                  <Badge className="capitalize text-xxs">{moveDetails.type}</Badge>
                 </div>
-                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-55'}`}>
-                  <span className="text-gray-400 block text-xs mb-1">Class</span>
-                  <span className="font-semibold capitalize block mt-1">
+                <div className={`p-3 rounded-xl border ${darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-50 border-zinc-200/50'}`}>
+                  <span className="text-zinc-500 block text-xxs font-bold uppercase mb-1">Class</span>
+                  <span className="font-extrabold capitalize block mt-1">
                     {moveDetails.damageClass}
                   </span>
                 </div>
-                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-55'}`}>
-                  <span className="text-gray-400 block text-xs mb-1">Power</span>
-                  <span className="font-semibold block mt-1">
+                <div className={`p-3 rounded-xl border ${darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-50 border-zinc-200/50'}`}>
+                  <span className="text-zinc-500 block text-xxs font-bold uppercase mb-1">Power</span>
+                  <span className="font-extrabold block mt-1">
                     {moveDetails.power !== null ? moveDetails.power : '—'}
                   </span>
                 </div>
-                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-55'}`}>
-                  <span className="text-gray-400 block text-xs mb-1">Accuracy</span>
-                  <span className="font-semibold block mt-1">
+                <div className={`p-3 rounded-xl border ${darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-50 border-zinc-200/50'}`}>
+                  <span className="text-zinc-500 block text-xxs font-bold uppercase mb-1">Accuracy</span>
+                  <span className="font-extrabold block mt-1">
                     {moveDetails.accuracy !== null ? `${moveDetails.accuracy}%` : '—'}
                   </span>
                 </div>
-                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-55'}`}>
-                  <span className="text-gray-400 block text-xs mb-1">PP</span>
-                  <span className="font-semibold block mt-1">
+                <div className={`p-3 rounded-xl border ${darkMode ? 'bg-zinc-900 border-zinc-800 animate-in' : 'bg-zinc-50 border-zinc-200/50'} col-span-2`}>
+                  <span className="text-zinc-500 block text-xxs font-bold uppercase mb-1">PP</span>
+                  <span className="font-extrabold block mt-1">
                     {moveDetails.pp}
                   </span>
                 </div>
               </div>
 
               <div>
-                <span className="text-gray-400 block text-xs mb-2 font-medium">Battle Effect</span>
-                <p className={`p-3 rounded-lg ${darkMode ? 'bg-gray-750 text-gray-300' : 'bg-gray-50 text-gray-700'} leading-relaxed`}>
+                <span className="text-zinc-500 block text-xxs font-bold uppercase mb-2">Battle Description</span>
+                <p className={`p-3.5 rounded-xl border leading-relaxed ${darkMode ? 'bg-zinc-900 border-zinc-800 text-zinc-300' : 'bg-zinc-50 border-zinc-200/50 text-zinc-700'}`}>
                   {moveDetails.description}
                 </p>
               </div>
@@ -1031,15 +1187,15 @@ export const DetailModal: React.FC = () => {
                     setShowDamageCalculator(true)
                     setSelectedMoveName(null)
                   }}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 mt-4"
+                  className="w-full bg-red-650 hover:bg-red-600 text-white flex items-center justify-center gap-1.5 mt-2 font-bold py-5 rounded-xl shadow-lg shadow-red-500/10"
                 >
-                  <Zap className="w-4 h-4" />
+                  <Zap className="w-4 h-4 animate-bounce" />
                   Load into Calculator
                 </Button>
               )}
             </div>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-400">
+            <div className="flex-1 flex items-center justify-center text-zinc-500">
               Move data not available.
             </div>
           )}

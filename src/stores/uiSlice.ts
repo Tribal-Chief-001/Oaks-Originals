@@ -68,7 +68,20 @@ export const createUISlice: StateCreator<PokedexState, [], [], UISlice> = (set, 
   calculatorAttackerId: null,
   calculatorMoveName: null,
 
-  setDarkMode: (val) => set({ darkMode: val }),
+  setDarkMode: (val) => {
+    set({ darkMode: val })
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('pokedex_darkMode', String(val))
+    }
+    const { user } = get()
+    if (user) {
+      import('@/lib/supabaseClient').then(({ supabase }) => {
+        supabase.auth.updateUser({
+          data: { darkMode: val }
+        }).catch(err => console.error('Failed to sync dark mode settings to user metadata:', err))
+      })
+    }
+  },
   setActiveTab: (activeTab) => {
     get().playClickSound()
     set({ activeTab })

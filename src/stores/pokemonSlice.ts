@@ -53,7 +53,11 @@ export const createPokemonSlice: StateCreator<PokedexState, [], [], PokemonSlice
   session: null,
   user: null,
   setSession: (session) => {
-    set({ session, user: session?.user || null })
+    const user = session?.user || null
+    set({ session, user })
+    if (user && user.user_metadata && typeof user.user_metadata.darkMode === 'boolean') {
+      set({ darkMode: user.user_metadata.darkMode })
+    }
     // Automatically trigger reload when session changes
     get().fetchInitialData()
   },
