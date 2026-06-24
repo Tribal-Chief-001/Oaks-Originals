@@ -8,6 +8,10 @@ export interface Pokemon {
   weight: number
   image: string
   shinyImage: string
+  animatedImage?: string
+  animatedShinyImage?: string
+  cryUrl?: string
+  encounters?: any
   category: string
   baseFriendship?: number
   baseExperience?: number
@@ -147,9 +151,18 @@ interface PokedexState {
   showBreedingTools: boolean
   showPokedexTracker: boolean
   showTypeChart: boolean
+  showItemsDirectory: boolean
   typeChartMode: 'chart' | 'calculator' | 'coverage'
   selectedType1: string
   selectedType2: string
+  
+  // Audio state
+  soundEnabled: boolean
+  soundVolume: number
+
+  // Calculator helper states
+  calculatorAttackerId: number | null
+  calculatorMoveName: string | null
   
   // Actions
   setSearchTerm: (term: string) => void
@@ -186,9 +199,14 @@ interface PokedexState {
   setShowBreedingTools: (val: boolean) => void
   setShowPokedexTracker: (val: boolean) => void
   setShowTypeChart: (val: boolean) => void
+  setShowItemsDirectory: (val: boolean) => void
   setTypeChartMode: (mode: PokedexState['typeChartMode']) => void
   setSelectedType1: (type: string) => void
-  setSelectedType2: (type: string) => void
+  setSoundEnabled: (val: boolean) => void
+  setSoundVolume: (val: number) => void
+  playCry: (pokemonId: number) => void
+  setCalculatorAttackerId: (id: number | null) => void
+  setCalculatorMoveName: (name: string | null) => void
   
   // DB Sync Actions
   fetchInitialData: () => Promise<void>
@@ -246,9 +264,16 @@ export const usePokedexStore = create<PokedexState>((set, get) => ({
   showBreedingTools: false,
   showPokedexTracker: false,
   showTypeChart: false,
+  showItemsDirectory: false,
   typeChartMode: 'chart',
   selectedType1: '',
   selectedType2: '',
+  
+  // Audio defaults
+  soundEnabled: false,
+  soundVolume: 0.5,
+  calculatorAttackerId: null,
+  calculatorMoveName: null,
   
   setSearchTerm: (term) => { set({ searchTerm: term }); get().applyFilters() },
   setSelectedType: (type) => { set({ selectedType: type }); get().applyFilters() },
@@ -326,9 +351,46 @@ export const usePokedexStore = create<PokedexState>((set, get) => ({
   setShowBreedingTools: (showBreedingTools) => set({ showBreedingTools }),
   setShowPokedexTracker: (showPokedexTracker) => set({ showPokedexTracker }),
   setShowTypeChart: (showTypeChart) => set({ showTypeChart }),
+  setShowItemsDirectory: (showItemsDirectory) => set({ showItemsDirectory }),
   setTypeChartMode: (typeChartMode) => set({ typeChartMode }),
   setSelectedType1: (selectedType1) => set({ selectedType1 }),
   setSelectedType2: (selectedType2) => set({ selectedType2 }),
+  setSoundEnabled: (soundEnabled) => {
+    set({ soundEnabled })
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('pokedex_soundEnabled', String(soundEnabled))
+    }
+  },
+  setSoundVolume: (soundVolume) => {
+    set({ soundVolume })
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('pokedex_soundVolume', String(soundVolume))
+    }
+  },
+  playCry: (pokemonId) => {
+    if (typeof window === 'undefined') return
+    const { soundEnabled, soundVolume, pokemon } = get()
+    if (!soundEnabled) return
+
+    const pk = pokemon.find(p => p.id === pokemonId)
+    if (!pk || !pk.cryUrl) return
+
+    const existing = (window as any)._activePokedexAudio
+    if (existing) {
+      existing.pause()
+    }
+
+    try {
+      const audio = new Audio(pk.cryUrl)
+      audio.volume = soundVolume
+      audio.play().catch(e => console.warn('Audio playback failed:', e))
+      ;(window as any)._activePokedexAudio = audio
+    } catch (e) {
+      console.warn('Could not initialize audio:', e)
+    }
+  },
+  setCalculatorAttackerId: (calculatorAttackerId) => set({ calculatorAttackerId }),
+  setCalculatorMoveName: (calculatorMoveName) => set({ calculatorMoveName }),
   
   fetchInitialData: async () => {
     set({ loading: true })
@@ -351,6 +413,14 @@ export const usePokedexStore = create<PokedexState>((set, get) => ({
       
       const pokemon = pkData.pokemon || []
       
+      let soundEnabled = false
+      let soundVolume = 0.5
+      if (typeof window !== 'undefined') {
+        soundEnabled = localStorage.getItem('pokedex_soundEnabled') === 'true'
+        const savedVolume = localStorage.getItem('pokedex_soundVolume')
+        if (savedVolume) soundVolume = parseFloat(savedVolume)
+      }
+      
       set({
         pokemon,
         favorites: favData,
@@ -361,6 +431,8 @@ export const usePokedexStore = create<PokedexState>((set, get) => ({
           pokemonIds: t.pokemonIds,
           createdAt: t.createdAt
         })),
+        soundEnabled,
+        soundVolume,
         loading: false
       })
       get().applyFilters()

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Heart, Plus, Users } from 'lucide-react'
@@ -20,12 +20,34 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
     addToCompare,
     addToTeam,
     setSelectedPokemon,
+    playCry,
     darkMode
   } = usePokedexStore()
+
+  const [tilt, setTilt] = useState({ x: 0, y: 0 })
+  const [isHovered, setIsHovered] = useState(false)
 
   const isFav = favorites.includes(pokemon.id)
   const isCompared = compareList.some(p => p.id === pokemon.id)
   const isTeammate = currentTeam.some(p => p.id === pokemon.id)
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget
+    const box = card.getBoundingClientRect()
+    const x = (e.clientX - box.left - box.width / 2) / (box.width / 2)
+    const y = (e.clientY - box.top - box.height / 2) / (box.height / 2)
+    setTilt({ x: x * 8, y: y * -8 })
+  }
+
+  const handleMouseEnter = () => {
+    setIsHovered(true)
+    playCry(pokemon.id)
+  }
+
+  const handleMouseLeave = () => {
+    setIsHovered(false)
+    setTilt({ x: 0, y: 0 })
+  }
 
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
@@ -49,6 +71,30 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
       steel: "bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200"
     }
     return colors[type] || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+  }
+
+  const getTypeGlowColor = (type: string) => {
+    const glows: Record<string, string> = {
+      grass: "shadow-[0_0_20px_rgba(34,197,94,0.45)] border-green-500/50",
+      poison: "shadow-[0_0_20px_rgba(168,85,247,0.45)] border-purple-500/50",
+      fire: "shadow-[0_0_20px_rgba(239,68,68,0.45)] border-red-500/50",
+      flying: "shadow-[0_0_20px_rgba(59,130,246,0.45)] border-blue-500/50",
+      water: "shadow-[0_0_20px_rgba(6,182,212,0.45)] border-cyan-500/50",
+      bug: "shadow-[0_0_20px_rgba(132,204,22,0.45)] border-lime-500/50",
+      normal: "shadow-[0_0_20px_rgba(156,163,175,0.45)] border-gray-500/50",
+      electric: "shadow-[0_0_20px_rgba(234,179,8,0.45)] border-yellow-500/50",
+      ground: "shadow-[0_0_20px_rgba(245,158,11,0.45)] border-amber-500/50",
+      fairy: "shadow-[0_0_20px_rgba(244,114,182,0.45)] border-pink-500/50",
+      fighting: "shadow-[0_0_20px_rgba(249,115,22,0.45)] border-orange-500/50",
+      psychic: "shadow-[0_0_20px_rgba(244,63,94,0.45)] border-rose-500/50",
+      rock: "shadow-[0_0_20px_rgba(120,113,108,0.45)] border-stone-500/50",
+      ghost: "shadow-[0_0_20px_rgba(99,102,241,0.45)] border-indigo-500/50",
+      ice: "shadow-[0_0_20px_rgba(14,165,233,0.45)] border-sky-500/50",
+      dragon: "shadow-[0_0_20px_rgba(139,92,246,0.45)] border-violet-500/50",
+      dark: "shadow-[0_0_20px_rgba(63,63,70,0.45)] border-zinc-500/50",
+      steel: "shadow-[0_0_20px_rgba(100,116,139,0.45)] border-slate-500/50"
+    }
+    return glows[type] || "shadow-[0_0_20px_rgba(59,130,246,0.45)] border-blue-500/50"
   }
 
   const getTypeIcon = (type: string) => {
@@ -83,20 +129,60 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
   }
 
   const totalBaseStats = pokemon.stats?.reduce((sum, stat) => sum + stat.value, 0) || 0
+  const primaryType = pokemon.types[0] || 'normal'
+
+  const cardStyle: React.CSSProperties = isHovered
+    ? {
+        transform: `perspective(1000px) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg) translateY(-5px)`,
+        transition: 'transform 0.1s ease-out, box-shadow 0.3s ease, border-color 0.3s ease',
+      }
+    : {
+        transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)',
+        transition: 'transform 0.4s ease-out, box-shadow 0.4s ease, border-color 0.4s ease',
+      }
+
+  const hasAnimation = showShiny ? pokemon.animatedShinyImage : pokemon.animatedImage
 
   return (
     <Card
-      className={`overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border-2 hover:border-blue-200 ${darkMode ? 'bg-gray-800 border-gray-700 hover:border-blue-500' : 'border-transparent hover:border-blue-200'}`}
+      className={`overflow-hidden cursor-pointer border-2 transition-all duration-300 ${
+        isHovered
+          ? getTypeGlowColor(primaryType)
+          : darkMode
+          ? 'bg-gray-800 border-gray-700'
+          : 'bg-white border-transparent'
+      }`}
+      style={cardStyle}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       onClick={() => setSelectedPokemon(pokemon)}
     >
       <CardContent className="p-4">
         <div className="relative mb-4">
           <div className={`absolute inset-0 rounded-lg ${darkMode ? 'bg-gradient-to-br from-gray-700 to-gray-800' : 'bg-gradient-to-br from-blue-50 to-indigo-100'}`} />
-          <img
-            src={showShiny ? pokemon.shinyImage : pokemon.image}
-            alt={pokemon.name}
-            className="relative w-full h-48 object-contain bg-transparent rounded-lg"
-          />
+          
+          <div className="relative w-full h-48 flex items-center justify-center bg-transparent rounded-lg overflow-hidden">
+            {/* Static Image */}
+            <img
+              src={showShiny ? pokemon.shinyImage : pokemon.image}
+              alt={pokemon.name}
+              className={`absolute w-36 h-36 object-contain transition-opacity duration-300 ${
+                isHovered && hasAnimation ? 'opacity-0' : 'opacity-100'
+              }`}
+            />
+            {/* Animated GIF */}
+            {hasAnimation && (
+              <img
+                src={showShiny ? pokemon.animatedShinyImage : pokemon.animatedImage || ''}
+                alt={`${pokemon.name} animation`}
+                className={`absolute w-24 h-24 object-contain transition-opacity duration-300 ${
+                  isHovered ? 'opacity-100' : 'opacity-0'
+                }`}
+              />
+            )}
+          </div>
+
           {showShiny && (
             <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold">
               ✨

@@ -10,7 +10,11 @@ export const DamageCalculator: React.FC = () => {
     showDamageCalculator,
     setShowDamageCalculator,
     pokemon,
-    darkMode
+    darkMode,
+    calculatorAttackerId,
+    calculatorMoveName,
+    setCalculatorAttackerId,
+    setCalculatorMoveName
   } = usePokedexStore()
 
   const [attacker, setAttacker] = useState<Pokemon | null>(null)
@@ -20,6 +24,42 @@ export const DamageCalculator: React.FC = () => {
   // Standard moves list for calculations
   const [movesList, setMovesList] = useState<Array<{ name: string; type: string; power: number; category: string }>>([])
   const [damageResult, setDamageResult] = useState<{ minDamage: number; maxDamage: number; percentage: number } | null>(null)
+
+  useEffect(() => {
+    if (showDamageCalculator && calculatorAttackerId) {
+      const p = pokemon.find(x => x.id === calculatorAttackerId)
+      if (p) setAttacker(p)
+      setCalculatorAttackerId(null)
+    }
+  }, [showDamageCalculator, calculatorAttackerId, pokemon])
+
+  useEffect(() => {
+    if (showDamageCalculator && calculatorMoveName) {
+      const fetchMove = async () => {
+        try {
+          const res = await fetch(`/api/moves?name=${encodeURIComponent(calculatorMoveName)}`)
+          if (res.ok) {
+            const data = await res.json()
+            const exists = movesList.some(m => m.name === data.name)
+            const mappedMove = {
+              name: data.name,
+              type: data.type,
+              power: data.power || 0,
+              category: data.damageClass
+            }
+            if (!exists) {
+              setMovesList(prev => [mappedMove, ...prev])
+            }
+            setSelectedMove(data.name)
+          }
+        } catch (e) {
+          console.error(e)
+        }
+      }
+      fetchMove()
+      setCalculatorMoveName(null)
+    }
+  }, [showDamageCalculator, calculatorMoveName, movesList])
 
   useEffect(() => {
     // Generate a default list of popular Kanto moves

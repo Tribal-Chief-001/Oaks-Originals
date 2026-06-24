@@ -2,7 +2,14 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-// Copy formula functions from page.tsx to compute fields during seed
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+const formatName = (str: string) => {
+  return str
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
 
 const getStatRating = (value: number) => {
   if (value >= 150) return 'Exceptional'
@@ -190,7 +197,7 @@ const getNotableAppearances = (id: number) => {
     7: ['Original 151 starter', 'Popular in competitive play', 'Featured in movies'],
     25: ['Series mascot', 'Most recognizable Pokémon', 'Featured in Super Smash Bros'],
     39: ['Popular singing Pokémon', 'Anime regular', 'Super Smash Bros fighter'],
-    52: ['Team Rocket\'s Pokémon', 'Anime antagonist', 'Can speak human language'],
+    52: ['Team Rocket\'s Pokémon', 'Anime regular', 'Can speak human language'],
     54: ['Comic relief Pokémon', 'Anime regular', 'Known for headaches'],
     68: ['Four-armed fighter', 'Popular in competitive', 'Evolution of Machop'],
     76: ['Rock-type powerhouse', 'Popular in competitive', 'Evolution of Geodude'],
@@ -302,14 +309,14 @@ const parseEvolutionChain = async (chainUrl: string) => {
   const parseChainNode = async (currentNode: any, method: string = 'Start') => {
     if (!currentNode) return
     
-    // Fetch basic details for the name to get ID and official artwork
     const pokemonName = currentNode.species.name
+    await delay(50)
     const pokemonResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`)
     if (pokemonResponse.ok) {
       const pokemonData = await pokemonResponse.json()
       evolutions.push({
         id: pokemonData.id,
-        name: pokemonName.charAt(0).toUpperCase() + pokemonName.slice(1),
+        name: formatName(pokemonName),
         image: pokemonData.sprites.other['official-artwork'].front_default,
         method: method
       })
@@ -323,7 +330,7 @@ const parseEvolutionChain = async (chainUrl: string) => {
           if (details.min_level) {
             evolutionMethod = `Level ${details.min_level}`
           } else if (details.item) {
-            evolutionMethod = details.item.name.replace('-', ' ').charAt(0).toUpperCase() + details.item.name.replace('-', ' ').slice(1)
+            evolutionMethod = formatName(details.item.name)
           } else if (details.trigger.name === 'trade') {
             evolutionMethod = 'Trade'
           } else if (details.happiness) {
@@ -341,27 +348,135 @@ const parseEvolutionChain = async (chainUrl: string) => {
 }
 
 async function main() {
-  console.log('Starting seed process for 151 Pokémon...')
-  
-  // Clear any existing cached Pokémon
+  console.log('Clearing database tables...')
   await prisma.pokemon.deleteMany()
-  console.log('Cleared existing cached Pokémon entries.')
+  await prisma.move.deleteMany()
+  await prisma.item.deleteMany()
+  console.log('Cleared Pokemon, Move, and Item tables.')
 
-  // Fetch all 151 Pokémon names and species URLs
+  // ==========================================
+  // 1. Seed Moves (Generation 1: Moves 1 to 165)
+  // ==========================================
+  console.log('Seeding 165 Generation I moves...')
+  for (let id = 1; id <= 165; id++) {
+    try {
+      await delay(40)
+      const res = await fetch(`https://pokeapi.co/api/v2/move/${id}/`)
+      if (!res.ok) continue
+      const data = await res.json()
+      
+      const englishDesc = data.flavor_text_entries
+        .find((entry: any) => entry.language.name === 'en' && entry.version_group.name === 'red-blue')
+        ?.flavor_text.replace(/\f/g, ' ').replace(/\n/g, ' ') || 'No Gen 1 description available.'
+
+      await prisma.move.create({
+        data: {
+          id: data.id,
+          name: formatName(data.name),
+          type: data.type.name,
+          power: data.power,
+          accuracy: data.accuracy,
+          pp: data.pp,
+          damageClass: data.damage_class?.name || 'status',
+          description: englishDesc
+        }
+      })
+      if (id % 30 === 0 || id === 165) {
+        console.log(`Seeded ${id}/165 moves...`)
+      }
+    } catch (err) {
+      console.error(`Failed to seed move ID ${id}:`, err)
+    }
+  }
+
+  // ==========================================
+  // 2. Seed Items (Kanto Store Items List)
+  // ==========================================
+  const itemNames = [
+    'master-ball', 'ultra-ball', 'great-ball', 'poke-ball', 'safari-ball',
+    'potion', 'super-potion', 'hyper-potion', 'max-potion', 'full-restore',
+    'revive', 'max-revive', 'antidote', 'burn-heal', 'ice-heal', 'awakening',
+    'paralyze-heal', 'full-heal', 'escape-rope', 'repel', 'super-repel', 'max-repel',
+    'fire-stone', 'water-stone', 'thunder-stone', 'leaf-stone', 'moon-stone'
+  ]
+  console.log(`Seeding ${itemNames.length} Kanto items...`)
+  let itemIndex = 0
+  for (const name of itemNames) {
+    itemIndex++
+    try {
+      await delay(40)
+      const res = await fetch(`https://pokeapi.co/api/v2/item/${name}/`)
+      if (!res.ok) continue
+      const data = await res.json()
+
+      const englishDesc = data.flavor_text_entries
+        .find((entry: any) => entry.language.name === 'en' && entry.version_group.name === 'red-blue')
+        ?.text.replace(/\f/g, ' ').replace(/\n/g, ' ') || 
+        data.effect_entries.find((entry: any) => entry.language.name === 'en')?.short_effect || 'No description.'
+
+      await prisma.item.create({
+        data: {
+          id: data.id,
+          name: formatName(data.name),
+          category: data.category.name,
+          cost: data.cost,
+          description: englishDesc,
+          sprite: data.sprites?.default || ''
+        }
+      })
+    } catch (err) {
+      console.error(`Failed to seed item ${name}:`, err)
+    }
+  }
+  console.log('Seeding items complete.')
+
+  // ==========================================
+  // 3. Seed 151 Kanto Pokémon
+  // ==========================================
+  console.log('Seeding 151 Pokémon with animated sprites, cries, and encounters...')
   const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
   const listData = await response.json()
   
   let count = 0
   for (const item of listData.results) {
     count++
-    console.log(`[${count}/151] Fetching ${item.name}...`)
     try {
+      await delay(45)
       const pokemonResponse = await fetch(item.url)
       const pokemonData = await pokemonResponse.json()
       
       const speciesResponse = await fetch(pokemonData.species.url)
       const speciesData = await speciesResponse.json()
       
+      // Fetch encounters
+      await delay(40)
+      const encountersResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonData.id}/encounters`)
+      const encountersData = await encountersResponse.json()
+      
+      // Parse Kanto encounters (Only Red, Blue, and Yellow versions)
+      const encounters = encountersData
+        .map((enc: any) => {
+          const kantoDetails = enc.version_details.filter((vd: any) =>
+            ['red', 'blue', 'yellow'].includes(vd.version.name)
+          )
+          if (kantoDetails.length === 0) return null
+          
+          return {
+            locationName: formatName(enc.location_area.name.replace('-area', '')),
+            versions: kantoDetails.map((vd: any) => ({
+              version: formatName(vd.version.name),
+              maxChance: vd.max_chance,
+              methods: vd.encounter_details.map((ed: any) => ({
+                method: formatName(ed.method.name),
+                minLevel: ed.min_level,
+                maxLevel: ed.max_level,
+                chance: ed.chance
+              }))
+            }))
+          }
+        })
+        .filter((e: any) => e !== null)
+
       // Parse evolution chain
       let evolutionChain: any[] = []
       if (speciesData.evolution_chain?.url) {
@@ -380,14 +495,13 @@ async function main() {
       
       const totalStats = stats.reduce((sum: number, stat: any) => sum + stat.value, 0)
       
-      // Extract abilities
       const abilities = pokemonData.abilities
         .filter((a: any) => !a.is_hidden)
-        .map((a: any) => a.ability.name)
+        .map((a: any) => formatName(a.ability.name))
         
       const hiddenAbilities = pokemonData.abilities
         .filter((a: any) => a.is_hidden)
-        .map((a: any) => a.ability.name)
+        .map((a: any) => formatName(a.ability.name))
 
       // Learnsets
       const learnset = {
@@ -403,7 +517,7 @@ async function main() {
             )
             return {
               level: detail.level_learned_at,
-              name: move.move.name.replace('-', ' ').charAt(0).toUpperCase() + move.move.name.replace('-', ' ').slice(1),
+              name: formatName(move.move.name),
               type: move.move.type?.name || 'normal',
               category: 'Physical',
               power: 0,
@@ -417,14 +531,14 @@ async function main() {
               detail.version_group.name === 'red-blue' && detail.move_learn_method.name === 'machine'
             )
           )
-          .map((move: any) => move.move.name.replace('-', ' ').charAt(0).toUpperCase() + move.move.name.replace('-', ' ').slice(1)),
+          .map((move: any) => formatName(move.move.name)),
         eggMoves: pokemonData.moves
           .filter((move: any) => 
             move.version_group_details.some((detail: any) => 
               detail.move_learn_method.name === 'egg'
             )
           )
-          .map((move: any) => move.move.name.replace('-', ' ').charAt(0).toUpperCase() + move.move.name.replace('-', ' ').slice(1))
+          .map((move: any) => formatName(move.move.name))
       }
 
       // Flavor Text
@@ -464,14 +578,14 @@ async function main() {
         weaknesses: getWeaknesses(pokemonData.types.map((t: any) => t.type.name)),
         smogonTier: getSmogonTier(pokemonData.id, totalStats),
         commonRoles: getCommonRoles(pokemonData.types.map((t: any) => t.type.name), stats),
-        optimalMovesets: getOptimalMovesets(pokemonData.name.charAt(0).toUpperCase() + pokemonData.name.slice(1), pokemonData.types.map((t: any) => t.type.name)),
+        optimalMovesets: getOptimalMovesets(formatName(pokemonData.name), pokemonData.types.map((t: any) => t.type.name)),
         counters: getCounters(pokemonData.types.map((t: any) => t.type.name), stats),
         teamSynergy: getTeamSynergy(pokemonData.types.map((t: any) => t.type.name))
       }
 
       const trivia = {
-        designOrigin: getDesignOrigin(pokemonData.id, pokemonData.name.charAt(0).toUpperCase() + pokemonData.name.slice(1)),
-        nameEtymology: getNameEtymology(pokemonData.name.charAt(0).toUpperCase() + pokemonData.name.slice(1)),
+        designOrigin: getDesignOrigin(pokemonData.id, formatName(pokemonData.name)),
+        nameEtymology: getNameEtymology(formatName(pokemonData.name)),
         notableAppearances: getNotableAppearances(pokemonData.id),
         historicalContext: getHistoricalContext(pokemonData.id),
         developerTrivia: getDeveloperTrivia(pokemonData.id)
@@ -482,19 +596,31 @@ async function main() {
         breedingQuirks: getBreedingQuirks(speciesData),
         formChangeTriggers: getFormChangeTriggers(pokemonData.id),
         eventExclusive: getEventExclusive(pokemonData.id),
-        statChanges: getStatChanges(pokemonData.name.charAt(0).toUpperCase() + pokemonData.name.slice(1))
+        statChanges: getStatChanges(formatName(pokemonData.name))
       }
+
+      // Animated images & cry URL
+      const animatedImage = pokemonData.sprites.other?.showdown?.front_default ||
+        pokemonData.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_default || ''
+
+      const animatedShinyImage = pokemonData.sprites.other?.showdown?.front_shiny ||
+        pokemonData.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_shiny || ''
+
+      const cryUrl = pokemonData.cries?.latest || pokemonData.cries?.legacy || null
 
       // Save to database
       await prisma.pokemon.create({
         data: {
           id: pokemonData.id,
-          name: pokemonData.name.charAt(0).toUpperCase() + pokemonData.name.slice(1),
+          name: formatName(pokemonData.name),
           types: pokemonData.types.map((type: any) => type.type.name),
           height: pokemonData.height,
           weight: pokemonData.weight,
           image: pokemonData.sprites.other['official-artwork'].front_default || '',
           shinyImage: pokemonData.sprites.other['official-artwork'].front_shiny || '',
+          animatedImage,
+          animatedShinyImage,
+          cryUrl,
           category: speciesData.genera.find((g: any) => g.language.name === 'en')?.genus || 'Pokémon',
           baseFriendship: speciesData.base_happiness,
           baseExperience: pokemonData.base_experience,
@@ -512,10 +638,14 @@ async function main() {
           flavorText: flavorTexts as any,
           trivia: trivia as any,
           advancedMechanics: advancedMechanics as any,
-          evolutionChain: evolutionChain as any
+          evolutionChain: evolutionChain as any,
+          encounters: encounters as any
         }
       })
 
+      if (count % 20 === 0 || count === 151) {
+        console.log(`Seeded ${count}/151 Pokémon...`)
+      }
     } catch (error) {
       console.error(`Failed to seed ${item.name}:`, error)
     }

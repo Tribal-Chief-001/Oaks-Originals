@@ -19,6 +19,8 @@ import { DamageCalculator } from '@/components/tools/DamageCalculator'
 import { IvCalculator } from '@/components/tools/IvCalculator'
 import { TypeChart } from '@/components/tools/TypeChart'
 import { TrackerDashboard } from '@/components/tools/TrackerDashboard'
+import { AudioToggle } from '@/components/pokedex/AudioToggle'
+import { ItemsDirectory } from '@/components/tools/ItemsDirectory'
 
 export default function Home() {
   const {
@@ -167,6 +169,9 @@ export default function Home() {
               <span className="text-sm font-medium text-yellow-600">✨ Shiny</span>
             </div>
 
+            {/* Audio Toggle */}
+            <AudioToggle />
+
             {/* Favorites Filter */}
             <Button
               variant="outline"
@@ -240,6 +245,16 @@ export default function Home() {
                     <MapPin className="w-4 h-4 mr-2" />
                     Type Chart
                   </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowItemsDirectory(true)}
+                    className={`w-full justify-start ${darkMode ? 'text-gray-200 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'}`}
+                  >
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    Items Directory
+                  </Button>
                 </div>
               </div>
             </div>
@@ -293,6 +308,7 @@ export default function Home() {
         <IvCalculator />
         <TypeChart />
         <TrackerDashboard />
+        <ItemsDirectory />
 
         {/* Dual Pokemon Comparison Overlay */}
         {compareMode && compareList.length === 2 && (

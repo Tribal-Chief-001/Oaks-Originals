@@ -1,11 +1,58 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-  Heart, Plus, X, Info, Users, Zap, BarChart3, BookOpen, MapPin, ChevronDown
+  Heart, Plus, X, Info, Users, Zap, BarChart3, BookOpen, MapPin, ChevronDown, Loader2
 } from 'lucide-react'
 import { usePokedexStore, Pokemon } from '@/hooks/usePokedexStore'
+
+const kantoMapLocations: Record<string, { x: number; y: number; label: string }> = {
+  "Pallet Town": { x: 2, y: 7, label: "Pallet Town" },
+  "Viridian City": { x: 2, y: 5, label: "Viridian City" },
+  "Pewter City": { x: 2, y: 2, label: "Pewter City" },
+  "Cerulean City": { x: 5, y: 2, label: "Cerulean City" },
+  "Vermilion City": { x: 6, y: 6, label: "Vermilion City" },
+  "Lavender Town": { x: 8, y: 4, label: "Lavender Town" },
+  "Celadon City": { x: 4, y: 4, label: "Celadon City" },
+  "Fuchsia City": { x: 5, y: 8, label: "Fuchsia City" },
+  "Saffron City": { x: 6, y: 4, label: "Saffron City" },
+  "Cinnabar Island": { x: 2, y: 9, label: "Cinnabar Island" },
+  "Indigo Plateau": { x: 1, y: 1, label: "Indigo Plateau" },
+  "Viridian Forest": { x: 2, y: 3, label: "Viridian Forest" },
+  "Mt Moon": { x: 3.5, y: 2, label: "Mt Moon" },
+  "Rock Tunnel": { x: 8, y: 2.5, label: "Rock Tunnel" },
+  "Seafoam Islands": { x: 3.5, y: 9, label: "Seafoam Islands" },
+  "Power Plant": { x: 9, y: 3, label: "Power Plant" },
+  "Safari Zone": { x: 5, y: 7.2, label: "Safari Zone" },
+  "Victory Road": { x: 1, y: 2, label: "Victory Road" },
+  "Cerulean Cave": { x: 5, y: 1.2, label: "Cerulean Cave" },
+  "Route 1": { x: 2, y: 6, label: "Route 1" },
+  "Route 2": { x: 2, y: 4, label: "Route 2" },
+  "Route 3": { x: 3, y: 2, label: "Route 3" },
+  "Route 4": { x: 4.2, y: 2, label: "Route 4" },
+  "Route 5": { x: 6, y: 3, label: "Route 5" },
+  "Route 6": { x: 6, y: 5, label: "Route 6" },
+  "Route 7": { x: 5, y: 4, label: "Route 7" },
+  "Route 8": { x: 7, y: 4, label: "Route 8" },
+  "Route 9": { x: 6.5, y: 2, label: "Route 9" },
+  "Route 10": { x: 8, y: 3.2, label: "Route 10" },
+  "Route 11": { x: 7, y: 6, label: "Route 11" },
+  "Route 12": { x: 8, y: 5, label: "Route 12" },
+  "Route 13": { x: 8, y: 6.2, label: "Route 13" },
+  "Route 14": { x: 7, y: 7.2, label: "Route 14" },
+  "Route 15": { x: 6, y: 8, label: "Route 15" },
+  "Route 16": { x: 3, y: 4, label: "Route 16" },
+  "Route 17": { x: 3, y: 6, label: "Route 17" },
+  "Route 18": { x: 4, y: 8, label: "Route 18" },
+  "Route 19": { x: 5, y: 9, label: "Route 19" },
+  "Route 20": { x: 4.2, y: 9, label: "Route 20" },
+  "Route 21": { x: 2, y: 8, label: "Route 21" },
+  "Route 22": { x: 1.2, y: 5, label: "Route 22" },
+  "Route 23": { x: 1, y: 3, label: "Route 23" },
+  "Route 24": { x: 5, y: 1.5, label: "Route 24" },
+  "Route 25": { x: 5.5, y: 1.5, label: "Route 25" }
+}
 
 export const DetailModal: React.FC = () => {
   const {
@@ -20,8 +67,37 @@ export const DetailModal: React.FC = () => {
     activeTab,
     setActiveTab,
     showShiny,
-    setShowShiny
+    setShowShiny,
+    setCalculatorAttackerId,
+    setCalculatorMoveName,
+    setShowDamageCalculator
   } = usePokedexStore()
+
+  const [selectedMoveName, setSelectedMoveName] = useState<string | null>(null)
+  const [moveDetails, setMoveDetails] = useState<any | null>(null)
+  const [loadingMove, setLoadingMove] = useState(false)
+
+  useEffect(() => {
+    if (!selectedMoveName) {
+      setMoveDetails(null)
+      return
+    }
+    const fetchMove = async () => {
+      setLoadingMove(true)
+      try {
+        const res = await fetch(`/api/moves?name=${encodeURIComponent(selectedMoveName)}`)
+        if (res.ok) {
+          const data = await res.json()
+          setMoveDetails(data)
+        }
+      } catch (err) {
+        console.error('Failed to fetch move:', err)
+      } finally {
+        setLoadingMove(false)
+      }
+    }
+    fetchMove()
+  }, [selectedMoveName])
 
   if (!selectedPokemon) return null
 
@@ -479,15 +555,22 @@ export const DetailModal: React.FC = () => {
 
             {/* Moves Tab */}
             {activeTab === 'moves' && (
-              <div className={`rounded-lg p-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+              <div className={`rounded-lg p-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-55'}`}>
                 <h3 className={`font-semibold text-xl mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Move Learnset</h3>
+                <p className="text-xs text-gray-400 mb-4">Click any move to view detailed stats, power, accuracy, and load it into the Damage Calculator.</p>
                 <div className="space-y-6">
                   {selectedPokemon.learnset?.levelUp && selectedPokemon.learnset.levelUp.length > 0 && (
                     <div>
                       <h4 className="font-semibold text-md mb-2">Level Up Moves (Gen I Red/Blue)</h4>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {selectedPokemon.learnset.levelUp.map((m, idx) => (
-                          <div key={idx} className={`p-2 rounded border text-xs capitalize flex justify-between ${darkMode ? 'bg-gray-600 border-gray-500' : 'bg-white'}`}>
+                          <div
+                            key={idx}
+                            onClick={() => setSelectedMoveName(m.name)}
+                            className={`p-2 rounded border text-xs capitalize flex justify-between cursor-pointer transition-all duration-300 hover:scale-102 hover:border-blue-400 hover:shadow-sm ${
+                              darkMode ? 'bg-gray-600 border-gray-500 hover:bg-gray-500 text-white' : 'bg-white hover:bg-blue-50'
+                            }`}
+                          >
                             <span>{m.name}</span>
                             <span className="font-bold text-gray-400">Lv. {m.level}</span>
                           </div>
@@ -500,7 +583,14 @@ export const DetailModal: React.FC = () => {
                       <h4 className="font-semibold text-md mb-2">TM Moves</h4>
                       <div className="flex flex-wrap gap-1">
                         {selectedPokemon.learnset.tmMoves.map((m, idx) => (
-                          <Badge key={idx} variant="secondary" className="capitalize text-xxs">{m}</Badge>
+                          <Badge
+                            key={idx}
+                            variant="secondary"
+                            onClick={() => setSelectedMoveName(m)}
+                            className="capitalize text-xxs cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+                          >
+                            {m}
+                          </Badge>
                         ))}
                       </div>
                     </div>
@@ -628,16 +718,176 @@ export const DetailModal: React.FC = () => {
             {/* Encounters Tab */}
             {activeTab === 'encounters' && (
               <div className={`rounded-lg p-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                <h3 className={`font-semibold text-xl mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Encounters & Locations</h3>
-                <div className="space-y-4 text-sm">
-                  <div>
-                    <h4 className="font-semibold text-gray-400 mb-1">Wild Kanto Locations</h4>
-                    <p className={`p-3 rounded ${darkMode ? 'bg-gray-600' : 'bg-white'}`}>
-                      {selectedPokemon.id === 150 ? 'Cerulean Cave (Post-Game)' :
-                       selectedPokemon.id === 151 ? 'Special Event Distribution Only' :
-                       selectedPokemon.id <= 9 ? 'Starter choices from Professor Oak' :
-                       'Various routes and grassy regions throughout the Kanto continent.'}
-                    </p>
+                <h3 className={`font-semibold text-xl mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Kanto Spawn Locations & Routes Map</h3>
+                
+                <div className="grid lg:grid-cols-12 gap-6">
+                  {/* Left Column: Interactive SVG Map */}
+                  <div className="lg:col-span-7 flex flex-col items-center justify-center bg-gray-950 rounded-xl p-4 shadow-inner relative overflow-hidden border border-gray-800">
+                    <div className="absolute top-2 left-2 text-xs font-semibold text-gray-500 bg-gray-900/80 px-2 py-1 rounded">
+                      Interactive Kanto Map Visualizer
+                    </div>
+                    
+                    <svg viewBox="0 0 520 420" className="w-full max-w-[480px] h-auto bg-transparent">
+                      {/* Connection Paths (Roads / Water routes) */}
+                      {[
+                        { from: "Pallet Town", to: "Route 1" },
+                        { from: "Route 1", to: "Viridian City" },
+                        { from: "Viridian City", to: "Route 2" },
+                        { from: "Route 2", to: "Viridian Forest" },
+                        { from: "Viridian Forest", to: "Pewter City" },
+                        { from: "Pewter City", to: "Route 3" },
+                        { from: "Route 3", to: "Mt Moon" },
+                        { from: "Mt Moon", to: "Route 4" },
+                        { from: "Route 4", to: "Cerulean City" },
+                        { from: "Cerulean City", to: "Route 24" },
+                        { from: "Route 24", to: "Route 25" },
+                        { from: "Cerulean City", to: "Route 5" },
+                        { from: "Route 5", to: "Saffron City" },
+                        { from: "Saffron City", to: "Route 6" },
+                        { from: "Route 6", to: "Vermilion City" },
+                        { from: "Celadon City", to: "Route 7" },
+                        { from: "Route 7", to: "Saffron City" },
+                        { from: "Saffron City", to: "Route 8" },
+                        { from: "Route 8", to: "Lavender Town" },
+                        { from: "Cerulean City", to: "Route 9" },
+                        { from: "Route 9", to: "Rock Tunnel" },
+                        { from: "Rock Tunnel", to: "Route 10" },
+                        { from: "Route 10", to: "Lavender Town" },
+                        { from: "Vermilion City", to: "Route 11" },
+                        { from: "Route 11", to: "Route 12" },
+                        { from: "Lavender Town", to: "Route 12" },
+                        { from: "Route 12", to: "Route 13" },
+                        { from: "Route 13", to: "Route 14" },
+                        { from: "Route 14", to: "Route 15" },
+                        { from: "Route 15", to: "Fuchsia City" },
+                        { from: "Celadon City", to: "Route 16" },
+                        { from: "Route 16", to: "Route 17" },
+                        { from: "Route 17", to: "Route 18" },
+                        { from: "Route 18", to: "Fuchsia City" },
+                        { from: "Fuchsia City", to: "Route 19" },
+                        { from: "Route 19", to: "Seafoam Islands" },
+                        { from: "Seafoam Islands", to: "Route 20" },
+                        { from: "Route 20", to: "Cinnabar Island" },
+                        { from: "Cinnabar Island", to: "Route 21" },
+                        { from: "Route 21", to: "Pallet Town" },
+                        { from: "Viridian City", to: "Route 22" },
+                        { from: "Route 22", to: "Route 23" },
+                        { from: "Route 23", to: "Victory Road" },
+                        { from: "Victory Road", to: "Indigo Plateau" },
+                      ].map((path, idx) => {
+                        const start = kantoMapLocations[path.from]
+                        const end = kantoMapLocations[path.to]
+                        if (!start || !end) return null
+                        
+                        const encountersList = (selectedPokemon.encounters as any[]) || []
+                        const isActive = encountersList.some(e => e.locationName === path.from) || encountersList.some(e => e.locationName === path.to)
+                        
+                        return (
+                          <line
+                            key={idx}
+                            x1={start.x * 50}
+                            y1={start.y * 40}
+                            x2={end.x * 50}
+                            y2={end.y * 40}
+                            stroke={isActive ? "#10B981" : "#374151"}
+                            strokeWidth={isActive ? 3 : 2}
+                            className="transition-all duration-300"
+                          />
+                        )
+                      })}
+
+                      {/* Map Nodes */}
+                      {Object.entries(kantoMapLocations).map(([locName, coord]) => {
+                        const encountersList = (selectedPokemon.encounters as any[]) || []
+                        const encounter = encountersList.find(e => e.locationName.toLowerCase().trim() === locName.toLowerCase().trim())
+                        const isActive = !!encounter
+                        const isCity = !locName.includes("Route") && !locName.includes("Forest") && !locName.includes("Tunnel") && !locName.includes("Islands") && !locName.includes("Cave") && !locName.includes("Road")
+                        
+                        return (
+                          <g key={locName}>
+                            <circle
+                              cx={coord.x * 50}
+                              cy={coord.y * 40}
+                              r={isCity ? 8 : 5}
+                              fill={isActive ? "#10B981" : isCity ? "#3B82F6" : "#4B5563"}
+                              className="transition-all duration-300 hover:scale-150 hover:stroke-white hover:stroke-2 cursor-pointer"
+                            />
+                            <title>{locName}{isActive ? " (Active spawn location)" : ""}</title>
+                          </g>
+                        )
+                      })}
+
+                      {/* Map Labels */}
+                      {Object.entries(kantoMapLocations).map(([locName, coord]) => {
+                        const isCity = !locName.includes("Route") && !locName.includes("Forest") && !locName.includes("Tunnel") && !locName.includes("Islands") && !locName.includes("Cave") && !locName.includes("Road")
+                        if (!isCity) return null
+                        
+                        return (
+                          <text
+                            key={locName}
+                            x={coord.x * 50}
+                            y={coord.y * 40 - 12}
+                            textAnchor="middle"
+                            fill="#9CA3AF"
+                            fontSize="8"
+                            fontWeight="bold"
+                            className="pointer-events-none select-none"
+                          >
+                            {coord.label}
+                          </text>
+                        )
+                      })}
+                    </svg>
+                  </div>
+                  
+                  {/* Right Column: Detailed spawn statistics */}
+                  <div className="lg:col-span-5 space-y-4 max-h-[360px] overflow-y-auto pr-2">
+                    <h4 className={`text-sm font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Wild Spawn Details</h4>
+                    
+                    {(!selectedPokemon.encounters || (selectedPokemon.encounters as any[]).length === 0) ? (
+                      <div className={`p-4 rounded-lg text-center ${darkMode ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-500'}`}>
+                        {selectedPokemon.id === 150 ? 'Cerulean Cave (Post-Game, Direct interaction)' :
+                         selectedPokemon.id === 151 ? 'Special Event Distribution Only' :
+                         selectedPokemon.id <= 9 ? 'Starter choices from Professor Oak' :
+                         'No standard wild encounters available.'}
+                      </div>
+                    ) : (
+                      ((selectedPokemon.encounters as any[])).map((enc: any, idx: number) => (
+                        <div key={idx} className={`p-3 rounded-lg border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200 shadow-sm'}`}>
+                          <div className="flex justify-between items-center mb-2">
+                            <span className={`font-semibold capitalize ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                              📍 {enc.locationName}
+                            </span>
+                          </div>
+                          
+                          <div className="space-y-2 text-xs">
+                            {enc.versions.map((v: any, vIdx: number) => (
+                              <div key={vIdx} className="border-t border-gray-700/50 pt-2 first:border-0 first:pt-0">
+                                <div className="flex items-center justify-between mb-1">
+                                  <Badge className={
+                                    v.version === 'Red' ? 'bg-red-500/10 text-red-500 hover:bg-red-500/10 border-red-500/30' :
+                                    v.version === 'Blue' ? 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/10 border-blue-500/30' :
+                                    'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/10 border-yellow-500/30'
+                                  } variant="outline">
+                                    {v.version} version
+                                  </Badge>
+                                  <span className="text-gray-400">Max Chance: {v.maxChance}%</span>
+                                </div>
+                                
+                                <div className="pl-2 space-y-1 text-gray-400">
+                                  {v.methods.map((m: any, mIdx: number) => (
+                                    <div key={mIdx} className="flex justify-between">
+                                      <span className="capitalize">• {m.method} (Lv. {m.minLevel === m.maxLevel ? m.minLevel : `${m.minLevel}-${m.maxLevel}`})</span>
+                                      <span>Chance: {m.chance}%</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </div>
@@ -692,6 +942,92 @@ export const DetailModal: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Move Details Drawer */}
+      {selectedMoveName && (
+        <div className={`fixed inset-y-0 right-0 w-80 border-l shadow-2xl p-6 z-50 flex flex-col transition-all duration-300 ${
+          darkMode ? 'bg-gray-850 border-gray-700 text-white animate-in slide-in-from-right' : 'bg-white border-gray-200 text-gray-800 animate-in slide-in-from-right'
+        }`}>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-bold text-lg capitalize">
+              {selectedMoveName}
+            </h3>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSelectedMoveName(null)}
+              className="w-8 h-8 rounded-full"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {loadingMove ? (
+            <div className="flex-1 flex items-center justify-center">
+              <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+            </div>
+          ) : moveDetails ? (
+            <div className="flex-1 space-y-6 text-sm overflow-y-auto">
+              <div className="grid grid-cols-2 gap-4">
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                  <span className="text-gray-400 block text-xs mb-1">Type</span>
+                  <Badge className="capitalize">{moveDetails.type}</Badge>
+                </div>
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-55'}`}>
+                  <span className="text-gray-400 block text-xs mb-1">Class</span>
+                  <span className="font-semibold capitalize block mt-1">
+                    {moveDetails.damageClass}
+                  </span>
+                </div>
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-55'}`}>
+                  <span className="text-gray-400 block text-xs mb-1">Power</span>
+                  <span className="font-semibold block mt-1">
+                    {moveDetails.power !== null ? moveDetails.power : '—'}
+                  </span>
+                </div>
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-55'}`}>
+                  <span className="text-gray-400 block text-xs mb-1">Accuracy</span>
+                  <span className="font-semibold block mt-1">
+                    {moveDetails.accuracy !== null ? `${moveDetails.accuracy}%` : '—'}
+                  </span>
+                </div>
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-55'}`}>
+                  <span className="text-gray-400 block text-xs mb-1">PP</span>
+                  <span className="font-semibold block mt-1">
+                    {moveDetails.pp}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <span className="text-gray-400 block text-xs mb-2 font-medium">Battle Effect</span>
+                <p className={`p-3 rounded-lg ${darkMode ? 'bg-gray-750 text-gray-300' : 'bg-gray-50 text-gray-700'} leading-relaxed`}>
+                  {moveDetails.description}
+                </p>
+              </div>
+
+              {moveDetails.power && (
+                <Button
+                  onClick={() => {
+                    setCalculatorAttackerId(selectedPokemon.id)
+                    setCalculatorMoveName(moveDetails.name)
+                    setShowDamageCalculator(true)
+                    setSelectedMoveName(null)
+                  }}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 mt-4"
+                >
+                  <Zap className="w-4 h-4" />
+                  Load into Calculator
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-gray-400">
+              Move data not available.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
