@@ -3,6 +3,7 @@ import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/c
 import { Badge } from '@/components/ui/badge'
 import { Heart, Plus, Users } from 'lucide-react'
 import { usePokedexStore, Pokemon } from '@/hooks/usePokedexStore'
+import { HolographicFoil } from './HolographicFoil'
 
 interface PokemonCardProps {
   pokemon: Pokemon
@@ -159,9 +160,13 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
       onClick={() => setSelectedPokemon(pokemon)}
     >
       <CardContent className="p-4">
-        <div className="relative mb-4">
+        <div className="relative mb-4 overflow-hidden rounded-lg">
           <div className={`absolute inset-0 rounded-lg ${darkMode ? 'bg-gradient-to-br from-gray-700 to-gray-800' : 'bg-gradient-to-br from-blue-50 to-indigo-100'}`} />
           
+          {showShiny && (
+            <HolographicFoil isHovered={isHovered} mousePos={{ x: tilt.x / 8, y: tilt.y / 8 }} />
+          )}
+
           <div className="relative w-full h-48 flex items-center justify-center bg-transparent rounded-lg overflow-hidden">
             {/* Static Image */}
             <img
@@ -184,7 +189,7 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
           </div>
 
           {showShiny && (
-            <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+            <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold z-20">
               ✨
             </div>
           )}

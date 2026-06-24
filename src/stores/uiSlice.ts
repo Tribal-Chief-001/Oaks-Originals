@@ -14,6 +14,7 @@ export interface UISlice {
   showPokedexTracker: boolean
   showTypeChart: boolean
   showItemsDirectory: boolean
+  showBattleArena: boolean
   typeChartMode: 'chart' | 'calculator' | 'coverage'
   selectedType1: string
   selectedType2: string
@@ -58,6 +59,7 @@ export const createUISlice: StateCreator<PokedexState, [], [], UISlice> = (set, 
   showPokedexTracker: false,
   showTypeChart: false,
   showItemsDirectory: false,
+  showBattleArena: false,
   typeChartMode: 'chart',
   selectedType1: '',
   selectedType2: '',
@@ -67,9 +69,22 @@ export const createUISlice: StateCreator<PokedexState, [], [], UISlice> = (set, 
   calculatorMoveName: null,
 
   setDarkMode: (val) => set({ darkMode: val }),
-  setActiveTab: (activeTab) => set({ activeTab }),
-  setSelectedPokemon: (selectedPokemon) => set({ selectedPokemon, activeTab: 'overview' }),
-  setCompareMode: (compareMode) => set({ compareMode, compareList: [] }),
+  setActiveTab: (activeTab) => {
+    get().playClickSound()
+    set({ activeTab })
+  },
+  setSelectedPokemon: (selectedPokemon) => {
+    get().playClickSound()
+    set({ selectedPokemon, activeTab: 'overview' })
+  },
+  setCompareMode: (compareMode) => {
+    if (compareMode) {
+      get().playSuccessSound()
+    } else {
+      get().playClickSound()
+    }
+    set({ compareMode, compareList: [] })
+  },
   addToCompare: (p) => {
     const { compareList } = get()
     if (compareList.length < 2 && !compareList.find(x => x.id === p.id)) {
@@ -86,6 +101,10 @@ export const createUISlice: StateCreator<PokedexState, [], [], UISlice> = (set, 
   setShowPokedexTracker: (showPokedexTracker) => set({ showPokedexTracker }),
   setShowTypeChart: (showTypeChart) => set({ showTypeChart }),
   setShowItemsDirectory: (showItemsDirectory) => set({ showItemsDirectory }),
+  setShowBattleArena: (showBattleArena) => {
+    get().playClickSound()
+    set({ showBattleArena })
+  },
   setTypeChartMode: (typeChartMode) => set({ typeChartMode }),
   setSelectedType1: (selectedType1) => set({ selectedType1 }),
   setSelectedType2: (selectedType2) => set({ selectedType2 }),
@@ -121,6 +140,82 @@ export const createUISlice: StateCreator<PokedexState, [], [], UISlice> = (set, 
       ;(window as any)._activePokedexAudio = audio
     } catch (e) {
       console.warn('Could not initialize audio:', e)
+    }
+  },
+  playClickSound: () => {
+    if (typeof window === 'undefined') return
+    const { soundEnabled, soundVolume } = get()
+    if (!soundEnabled) return
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'square'
+      osc.frequency.setValueAtTime(600, ctx.currentTime)
+      osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.05)
+      
+      gain.gain.setValueAtTime(soundVolume * 0.08, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05)
+      
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      
+      osc.start()
+      osc.stop(ctx.currentTime + 0.05)
+    } catch (e) {
+      console.warn('Click audio failed:', e)
+    }
+  },
+  playSuccessSound: () => {
+    if (typeof window === 'undefined') return
+    const { soundEnabled, soundVolume } = get()
+    if (!soundEnabled) return
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const notes = [523.25, 659.25, 783.99] // C5, E5, G5
+      const noteDuration = 0.08
+      
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.type = 'triangle'
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * noteDuration)
+        
+        gain.gain.setValueAtTime(soundVolume * 0.12, ctx.currentTime + idx * noteDuration)
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * noteDuration + noteDuration)
+        
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        
+        osc.start(ctx.currentTime + idx * noteDuration)
+        osc.stop(ctx.currentTime + idx * noteDuration + noteDuration)
+      })
+    } catch (e) {
+      console.warn('Success audio failed:', e)
+    }
+  },
+  playErrorSound: () => {
+    if (typeof window === 'undefined') return
+    const { soundEnabled, soundVolume } = get()
+    if (!soundEnabled) return
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sawtooth'
+      osc.frequency.setValueAtTime(150, ctx.currentTime)
+      osc.frequency.linearRampToValueAtTime(100, ctx.currentTime + 0.2)
+      
+      gain.gain.setValueAtTime(soundVolume * 0.15, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2)
+      
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      
+      osc.start()
+      osc.stop(ctx.currentTime + 0.2)
+    } catch (e) {
+      console.warn('Error audio failed:', e)
     }
   },
   setCalculatorAttackerId: (calculatorAttackerId) => set({ calculatorAttackerId }),

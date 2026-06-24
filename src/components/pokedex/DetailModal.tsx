@@ -613,9 +613,19 @@ export const DetailModal: React.FC = () => {
                 <div className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6 text-sm">
                     <div className="space-y-3">
-                      <div>
-                        <span className="text-gray-400 block mb-1">Smogon Tier:</span>
-                        <Badge variant="outline" className="font-bold">{selectedPokemon.competitive.smogonTier}</Badge>
+                      <div className="flex flex-wrap gap-3">
+                        <div>
+                          <span className="text-gray-400 block mb-1">Smogon Tier:</span>
+                          <Badge variant="outline" className="font-bold">{selectedPokemon.competitive.smogonTier}</Badge>
+                        </div>
+                        {selectedPokemon.competitive.usageRank && (
+                          <div>
+                            <span className="text-gray-400 block mb-1">Smogon Usage Rank:</span>
+                            <Badge variant="secondary" className="font-bold">
+                              #{selectedPokemon.competitive.usageRank} ({selectedPokemon.competitive.usagePercentage}%)
+                            </Badge>
+                          </div>
+                        )}
                       </div>
                       <div>
                         <span className="text-gray-400 block mb-1">Roles:</span>

@@ -25,6 +25,7 @@ export const metadata: Metadata = {
     shortcut: '/pokeball.png',
     apple: '/pokeball.png',
   }, 
+  manifest: "/manifest.json",
   
   openGraph: {
     title: "Oak's Originals - Kanto Pokédex",
@@ -40,6 +41,8 @@ export const metadata: Metadata = {
   },
 };
 
+import RegisterSW from "@/components/pokedex/RegisterSW";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -50,6 +53,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
+        <RegisterSW />
         {children}
         <Toaster />
       </body>

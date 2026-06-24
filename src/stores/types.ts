@@ -56,6 +56,8 @@ export interface Pokemon {
     optimalMovesets: string[]
     counters: string[]
     teamSynergy: string
+    usageRank?: number
+    usagePercentage?: number
   }
   flavorText?: {
     red?: string
@@ -155,6 +157,7 @@ export interface PokedexState {
   showPokedexTracker: boolean
   showTypeChart: boolean
   showItemsDirectory: boolean
+  showBattleArena: boolean
   typeChartMode: 'chart' | 'calculator' | 'coverage'
   selectedType1: string
   selectedType2: string
@@ -203,12 +206,16 @@ export interface PokedexState {
   setShowPokedexTracker: (val: boolean) => void
   setShowTypeChart: (val: boolean) => void
   setShowItemsDirectory: (val: boolean) => void
+  setShowBattleArena: (val: boolean) => void
   setTypeChartMode: (mode: PokedexState['typeChartMode']) => void
   setSelectedType1: (type: string) => void
   setSelectedType2: (type: string) => void
   setSoundEnabled: (val: boolean) => void
   setSoundVolume: (val: number) => void
   playCry: (pokemonId: number) => void
+  playClickSound: () => void
+  playSuccessSound: () => void
+  playErrorSound: () => void
   setCalculatorAttackerId: (id: number | null) => void
   setCalculatorMoveName: (name: string | null) => void
   

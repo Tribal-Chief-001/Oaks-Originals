@@ -13,6 +13,13 @@ export const createFavoriteSlice: StateCreator<PokedexState, [], [], FavoriteSli
     const isFav = favorites.includes(pokemonId)
     const nextFavorites = isFav ? favorites.filter(id => id !== pokemonId) : [...favorites, pokemonId]
 
+    // Play retro audio cues
+    if (isFav) {
+      get().playClickSound()
+    } else {
+      get().playSuccessSound()
+    }
+
     // Optimistic Update
     set({ favorites: nextFavorites })
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { redisCache } from '@/lib/redis'
 
 export async function GET(request: Request) {
   try {
@@ -7,6 +8,12 @@ export async function GET(request: Request) {
     const name = searchParams.get('name')
     if (!name) {
       return NextResponse.json({ error: 'Move name is required' }, { status: 400 })
+    }
+
+    const cacheKey = `pokedex:move:${name.toLowerCase().replace(/\s+/g, '_')}`;
+    const cachedMove = await redisCache.get(cacheKey);
+    if (cachedMove) {
+      return NextResponse.json(cachedMove);
     }
 
     const move = await db.move.findUnique({
@@ -17,6 +24,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Move not found' }, { status: 404 })
     }
 
+    await redisCache.set(cacheKey, move, 86400); // Cache for 24 hours
     return NextResponse.json(move)
   } catch (error) {
     console.error('Error fetching move:', error)

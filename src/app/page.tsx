@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { Switch } from '@/components/ui/input' // wait, shadcn Switch is imported from "@/components/ui/switch"
 import { Switch as ShadcnSwitch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import {
   Search, Loader2, Github, Twitter, Sun, Moon, Heart, Star, X, Plus,
   BarChart3, BookOpen, Zap, Users, MapPin, SlidersHorizontal, ChevronDown,
-  LogIn, LogOut, User as UserIcon
+  LogIn, LogOut, User as UserIcon, Sword
 } from 'lucide-react'
 import { usePokedexStore } from '@/hooks/usePokedexStore'
 import { PokedexGrid } from '@/components/pokedex/PokedexGrid'
@@ -26,6 +26,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { toast } from '@/hooks/use-toast'
 import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { BattleArena } from '@/components/tools/BattleArena'
 
 export default function Home() {
   const {
@@ -66,7 +67,8 @@ export default function Home() {
 
     // Auth
     user,
-    setSession
+    setSession,
+    setShowBattleArena
   } = usePokedexStore()
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
@@ -275,6 +277,16 @@ export default function Home() {
                     <BookOpen className="w-4 h-4 mr-2" />
                     Items Directory
                   </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowBattleArena(true)}
+                    className={`w-full justify-start text-red-650 hover:bg-red-500/10 ${darkMode ? 'hover:bg-red-950/20 text-red-400' : 'text-red-650 hover:bg-red-50'}`}
+                  >
+                    <Sword className="w-4 h-4 mr-2" />
+                    Battle Arena
+                  </Button>
                 </div>
               </div>
             </div>
@@ -349,7 +361,9 @@ export default function Home() {
         <FilterPanel />
 
         {/* Pokemon Main Grid */}
-        <PokedexGrid />
+        <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="w-10 h-10 animate-spin text-red-650" /></div>}>
+          <PokedexGrid />
+        </Suspense>
 
         {/* Sub-tool Modal Overlays */}
         <DetailModal />
@@ -364,6 +378,7 @@ export default function Home() {
           onClose={() => setIsAuthModalOpen(false)} 
         />
         <OnboardingTour />
+        <BattleArena />
 
         {/* Dual Pokemon Comparison Overlay */}
         {compareMode && compareList.length === 2 && (

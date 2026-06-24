@@ -27,17 +27,29 @@ export const createTeamSlice: StateCreator<PokedexState, [], [], TeamSlice> = (s
   setTeamName: (teamName) => set({ teamName }),
   addToTeam: (p) => {
     const { currentTeam } = get()
-    if (currentTeam.length < 6 && !currentTeam.find(x => x.id === p.id)) {
-      set({ currentTeam: [...currentTeam, p] })
+    if (currentTeam.find(x => x.id === p.id)) {
+      get().playErrorSound()
+      return
     }
+    if (currentTeam.length >= 6) {
+      get().playErrorSound()
+      return
+    }
+    get().playSuccessSound()
+    set({ currentTeam: [...currentTeam, p] })
   },
   removeFromTeam: (id) => {
+    get().playClickSound()
     set(state => ({ currentTeam: state.currentTeam.filter(x => x.id !== id) }))
   },
   saveTeam: async () => {
     const { currentTeam, teamName, savedTeams, user, session } = get()
-    if (!teamName.trim() || currentTeam.length === 0) return
+    if (!teamName.trim() || currentTeam.length === 0) {
+      get().playErrorSound()
+      return
+    }
 
+    get().playSuccessSound()
     const pokemonIds = currentTeam.map(x => x.id)
 
     if (user) {
@@ -82,6 +94,7 @@ export const createTeamSlice: StateCreator<PokedexState, [], [], TeamSlice> = (s
   },
   deleteTeam: async (id) => {
     const { savedTeams, user, session } = get()
+    get().playClickSound()
     const nextSavedTeams = savedTeams.filter(t => t.id !== id)
     set({ savedTeams: nextSavedTeams })
 
