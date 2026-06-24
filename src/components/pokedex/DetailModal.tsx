@@ -99,14 +99,18 @@ export const DetailModal: React.FC = () => {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      document.body.style.overflow = 'hidden'
+      if (selectedPokemon) {
+        document.body.style.overflow = 'hidden'
+      } else {
+        document.body.style.overflow = 'unset'
+      }
     }
     return () => {
       if (typeof window !== 'undefined') {
         document.body.style.overflow = 'unset'
       }
     }
-  }, [])
+  }, [selectedPokemon])
 
   useEffect(() => {
     if (!selectedMoveName) {
