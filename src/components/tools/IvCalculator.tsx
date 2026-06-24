@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { X, Plus, Minus, RefreshCw, Sparkles, Heart, Calculator } from 'lucide-react'
 import { usePokedexStore, Pokemon } from '@/hooks/usePokedexStore'
-import { toast } from 'sonner'
+import { toast } from '@/hooks/use-toast'
 
 export const IvCalculator: React.FC = () => {
   const {
@@ -322,7 +322,10 @@ export const IvCalculator: React.FC = () => {
           shiny: true
         })
       })
-      toast.success(`Shiny ${target.name} registered in your Pokedex! ✨`)
+      toast({
+        title: "Shiny Registered!",
+        description: `Shiny ${target.name} registered in your Pokedex! ✨`
+      })
     } catch (e) {
       console.error('Failed to sync shiny tracker to DB:', e)
     }

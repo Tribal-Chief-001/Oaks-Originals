@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { toast } from 'sonner'
+import { toast } from '@/hooks/use-toast'
 
 export interface Pokemon {
   id: number
@@ -452,7 +452,11 @@ export const usePokedexStore = create<PokedexState>((set, get) => ({
       }
 
       if (pokemon.length === 0) {
-        toast.error('Failed to load Pokémon database. Please check your Supabase connection settings.')
+        toast({
+          title: 'Database Error',
+          description: 'Failed to load Pokémon database. Please check your Supabase connection settings.',
+          variant: 'destructive'
+        })
       }
 
       let soundEnabled = false
