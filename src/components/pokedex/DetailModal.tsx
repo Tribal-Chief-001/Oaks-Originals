@@ -98,6 +98,17 @@ export const DetailModal: React.FC = () => {
   const [loadingMove, setLoadingMove] = useState(false)
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      document.body.style.overflow = 'hidden'
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        document.body.style.overflow = 'unset'
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     if (!selectedMoveName) {
       setMoveDetails(null)
       return
@@ -353,7 +364,7 @@ export const DetailModal: React.FC = () => {
         <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
           
           {/* LEFT PORTRAIT SIDEBAR (1/3 Width) */}
-          <div className="w-full lg:w-1/3 p-6 flex flex-col justify-start border-b lg:border-b-0 lg:border-r border-zinc-200 dark:border-zinc-800/80 relative overflow-y-auto shrink-0 bg-gradient-to-b from-transparent to-zinc-100/10 dark:to-zinc-900/5">
+          <div className="w-full lg:w-1/3 p-6 flex flex-col justify-start border-b lg:border-b-0 lg:border-r border-zinc-200 dark:border-zinc-800/80 relative overflow-y-auto overflow-x-hidden scrollbar-none shrink-0 bg-gradient-to-b from-transparent to-zinc-100/10 dark:to-zinc-900/5">
             
             {/* Accent Glow Backdrops */}
             <div 
