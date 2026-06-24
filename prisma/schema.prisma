@@ -51,23 +51,31 @@ model Pokemon {
 
 model Favorite {
   id        String   @id @default(cuid())
-  pokemonId Int      @unique
+  userId    String
+  pokemonId Int
   createdAt DateTime @default(now())
+
+  @@unique([userId, pokemonId])
 }
 
 model PokedexTracker {
-  pokemonId  Int      @id
-  seen       Boolean  @default(false)
-  caught     Boolean  @default(false)
-  shiny      Boolean  @default(false)
+  id         String    @id @default(cuid())
+  userId     String
+  pokemonId  Int
+  seen       Boolean   @default(false)
+  caught     Boolean   @default(false)
+  shiny      Boolean   @default(false)
   caughtDate DateTime?
   notes      String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([userId, pokemonId])
 }
 
 model SavedTeam {
   id         String   @id @default(cuid())
+  userId     String
   name       String
   pokemonIds Int[]
   createdAt  DateTime @default(now())

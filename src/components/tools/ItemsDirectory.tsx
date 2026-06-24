@@ -112,8 +112,32 @@ export const ItemsDirectory: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="h-60 flex items-center justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div
+                  key={index}
+                  className={`p-4 rounded-lg border flex flex-col justify-between ${
+                    darkMode ? 'bg-gray-750 border-gray-700' : 'bg-white border-gray-200'
+                  }`}
+                >
+                  <div>
+                    <div className="flex justify-between items-start gap-2 mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gray-300 dark:bg-gray-700 rounded animate-pulse animate-duration-1000" />
+                        <div className="space-y-2">
+                          <div className="h-4 w-24 bg-gray-300 dark:bg-gray-700 rounded animate-pulse" />
+                          <div className="h-3 w-16 bg-gray-300 dark:bg-gray-700 rounded animate-pulse" />
+                        </div>
+                      </div>
+                      <div className="h-5 w-12 bg-gray-300 dark:bg-gray-700 rounded animate-pulse" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="h-3 w-full bg-gray-300 dark:bg-gray-700 rounded animate-pulse" />
+                      <div className="h-3 w-5/6 bg-gray-300 dark:bg-gray-700 rounded animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredItems.length === 0 ? (
             <div className="h-60 flex items-center justify-center text-gray-400 text-sm">

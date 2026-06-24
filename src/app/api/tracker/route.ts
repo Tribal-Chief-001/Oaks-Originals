@@ -1,9 +1,18 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { getAuthUser } from '@/lib/auth'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const entries = await db.pokedexTracker.findMany()
+    const user = await getAuthUser(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const entries = await db.pokedexTracker.findMany({
+      where: { userId: user.id }
+    })
+    
     const trackerMap: Record<number, any> = {}
     entries.forEach(entry => {
       trackerMap[entry.pokemonId] = {
@@ -23,6 +32,11 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const user = await getAuthUser(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { pokemonId, seen, caught, shiny, notes } = await request.json()
     if (typeof pokemonId !== 'number') {
       return NextResponse.json({ error: 'Invalid Pokemon ID' }, { status: 400 })
@@ -31,7 +45,12 @@ export async function POST(request: Request) {
     const caughtDate = caught ? new Date() : null
 
     const entry = await db.pokedexTracker.upsert({
-      where: { pokemonId },
+      where: {
+        userId_pokemonId: {
+          userId: user.id,
+          pokemonId
+        }
+      },
       update: {
         seen: !!seen,
         caught: !!caught,
@@ -40,6 +59,7 @@ export async function POST(request: Request) {
         caughtDate
       },
       create: {
+        userId: user.id,
         pokemonId,
         seen: !!seen,
         caught: !!caught,

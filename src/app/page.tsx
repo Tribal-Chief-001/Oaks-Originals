@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Switch } from '@/components/ui/input' // wait, shadcn Switch is imported from "@/components/ui/switch"
 import { Switch as ShadcnSwitch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Badge } from '@/components/ui/badge'
 import {
   Search, Loader2, Github, Twitter, Sun, Moon, Heart, Star, X, Plus,
-  BarChart3, BookOpen, Zap, Users, MapPin, SlidersHorizontal, ChevronDown
+  BarChart3, BookOpen, Zap, Users, MapPin, SlidersHorizontal, ChevronDown,
+  LogIn, LogOut, User as UserIcon
 } from 'lucide-react'
 import { usePokedexStore } from '@/hooks/usePokedexStore'
 import { PokedexGrid } from '@/components/pokedex/PokedexGrid'
@@ -21,6 +22,10 @@ import { TypeChart } from '@/components/tools/TypeChart'
 import { TrackerDashboard } from '@/components/tools/TrackerDashboard'
 import { AudioToggle } from '@/components/pokedex/AudioToggle'
 import { ItemsDirectory } from '@/components/tools/ItemsDirectory'
+import { supabase } from '@/lib/supabaseClient'
+import { AuthModal } from '@/components/auth/AuthModal'
+import { toast } from '@/hooks/use-toast'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
 
 export default function Home() {
   const {
@@ -57,11 +62,26 @@ export default function Home() {
     
     // DB Sync Actions
     fetchInitialData,
-    loading
+    loading,
+
+    // Auth
+    user,
+    setSession
   } = usePokedexStore()
 
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+
+  // Listen to Auth State
   useEffect(() => {
-    fetchInitialData()
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   // Manage Dark Mode Class on documentElement
@@ -282,6 +302,36 @@ export default function Home() {
               </Button>
             </div>
 
+            {/* Auth Button */}
+            {user ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  await supabase.auth.signOut()
+                  toast({
+                    title: "Logged out",
+                    description: "Goodbye, trainer!",
+                  })
+                }}
+                className={`flex items-center gap-2 ${darkMode ? 'border-gray-600' : ''}`}
+              >
+                <LogOut className="w-4 h-4 text-red-500" />
+                <span className="hidden md:inline text-xs max-w-[120px] truncate">{user.email}</span>
+                <span className="md:hidden">Out</span>
+              </Button>
+            ) : (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setIsAuthModalOpen(true)}
+                className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 font-semibold"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>Sign In</span>
+              </Button>
+            )}
+
           </div>
         </div>
 
@@ -309,6 +359,11 @@ export default function Home() {
         <TypeChart />
         <TrackerDashboard />
         <ItemsDirectory />
+        <AuthModal 
+          isOpen={isAuthModalOpen} 
+          onClose={() => setIsAuthModalOpen(false)} 
+        />
+        <OnboardingTour />
 
         {/* Dual Pokemon Comparison Overlay */}
         {compareMode && compareList.length === 2 && (

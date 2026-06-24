@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -291,7 +292,13 @@ export const DetailModal: React.FC = () => {
         </CardHeader>
         
         <CardContent className="p-6">
-          <div className="space-y-6">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="space-y-6"
+          >
             
             {/* Overview Tab */}
             {activeTab === 'overview' && (
@@ -939,7 +946,7 @@ export const DetailModal: React.FC = () => {
               </div>
             )}
 
-          </div>
+          </motion.div>
         </CardContent>
       </Card>
 

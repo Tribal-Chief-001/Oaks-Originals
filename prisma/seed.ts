@@ -66,11 +66,13 @@ const getWeaknesses = (types: string[]) => {
 }
 
 const getSmogonTier = (id: number, totalStats: number) => {
-  if (id === 144 || id === 145 || id === 150) return 'Uber'
-  if (id === 143 || id === 146) return 'OU'
-  if (totalStats > 600) return 'OU'
-  if (totalStats > 500) return 'UU'
-  if (totalStats > 400) return 'RU'
+  const ubers = [150, 151] // Mewtwo, Mew
+  const ou = [65, 113, 91, 103, 94, 76, 124, 131, 112, 143, 121, 128, 135, 145] // Alakazam, Chansey, Cloyster, Exeggutor, Gengar, Golem, Jynx, Lapras, Rhydon, Snorlax, Starmie, Tauros, Jolteon, Zapdos
+  const uu = [144, 6, 36, 85, 149, 130, 93, 97, 141, 64, 115, 146, 34, 31, 139, 53, 26, 73, 134] // Articuno, Charizard, Clefable, Dodrio, Dragonite, Gyarados, Haunter, Hypno, Kabutops, Kadabra, Kangaskhan, Moltres, Nidoking, Nidoqueen, Omastar, Persian, Raichu, Tentacruel, Vaporeon
+
+  if (ubers.includes(id)) return 'Uber'
+  if (ou.includes(id)) return 'OU'
+  if (uu.includes(id)) return 'UU'
   return 'NU'
 }
 
@@ -93,15 +95,99 @@ const getCommonRoles = (types: string[], stats: any[]) => {
 
 const getOptimalMovesets = (name: string, types: string[]) => {
   const movesets: Record<string, string[]> = {
-    'Charizard': ['Flamethrower', 'Fire Blast', 'Earthquake', 'Slash'],
-    'Blastoise': ['Surf', 'Ice Beam', 'Body Slam', 'Rest'],
-    'Venusaur': ['Razor Leaf', 'Sleep Powder', 'Body Slam', 'Hyper Beam'],
-    'Pikachu': ['Thunderbolt', 'Thunder', 'Quick Attack', 'Double Team'],
-    'Alakazam': ['Psychic', 'Recover', 'Seismic Toss', 'Reflect'],
-    'Machamp': ['Submission', 'Body Slam', 'Hyper Beam', 'Submission'],
+    'Venusaur': ['Razor Leaf', 'Sleep Powder', 'Swords Dance', 'Body Slam'],
+    'Charizard': ['Fire Blast', 'Slash', 'Earthquake', 'Swords Dance'],
+    'Blastoise': ['Surf', 'Blizzard', 'Body Slam', 'Rest'],
+    'Butterfree': ['Sleep Powder', 'Stun Spore', 'Psychic', 'Mega Drain'],
+    'Beedrill': ['Twineedle', 'Swords Dance', 'Agility', 'Hyper Beam'],
+    'Pidgeot': ['Double-Edge', 'Fly', 'Quick Attack', 'Mirror Move'],
+    'Raticate': ['Super Fang', 'Body Slam', 'Bubblebeam', 'Blizzard'],
+    'Fearow': ['Drill Peck', 'Double-Edge', 'Agility', 'Mirror Move'],
+    'Arbok': ['Glare', 'Wrap', 'Earthquake', 'Hyper Beam'],
+    'Pikachu': ['Thunderbolt', 'Thunder Wave', 'Surf', 'Quick Attack'],
+    'Raichu': ['Thunderbolt', 'Thunder Wave', 'Surf', 'Hyper Beam'],
+    'Sandslash': ['Earthquake', 'Rock Slide', 'Swords Dance', 'Body Slam'],
+    'Nidoqueen': ['Earthquake', 'Blizzard', 'Thunder', 'Body Slam'],
+    'Nidoking': ['Earthquake', 'Blizzard', 'Thunderbolt', 'Body Slam'],
+    'Clefable': ['Blizzard', 'Body Slam', 'Thunder Wave', 'Sing'],
+    'Ninetales': ['Fire Spin', 'Flamethrower', 'Confuse Ray', 'Body Slam'],
+    'Wigglytuff': ['Body Slam', 'Blizzard', 'Thunder Wave', 'Sing'],
+    'Golbat': ['Confuse Ray', 'Haze', 'Mega Drain', 'Double-Edge'],
+    'Vileplume': ['Sleep Powder', 'Razor Leaf', 'Stun Spore', 'Swords Dance'],
+    'Parasect': ['Spore', 'Slash', 'Mega Drain', 'Swords Dance'],
+    'Venomoth': ['Sleep Powder', 'Psychic', 'Stun Spore', 'Double-Edge'],
+    'Dugtrio': ['Earthquake', 'Rock Slide', 'Slash', 'Substitute'],
+    'Persian': ['Slash', 'Bubblebeam', 'Thunderbolt', 'Hyper Beam'],
+    'Golduck': ['Surf', 'Blizzard', 'Amnesia', 'Submission'],
+    'Primeape': ['Submission', 'Rock Slide', 'Body Slam', 'Focus Energy'],
+    'Arcanine': ['Fire Blast', 'Body Slam', 'Hyper Beam', 'Reflect'],
+    'Poliwrath': ['Blizzard', 'Submission', 'Hypnosis', 'Amnesia'],
+    'Alakazam': ['Psychic', 'Recover', 'Thunder Wave', 'Reflect'],
+    'Machamp': ['Submission', 'Earthquake', 'Rock Slide', 'Body Slam'],
+    'Victreebel': ['Razor Leaf', 'Sleep Powder', 'Wrap', 'Swords Dance'],
+    'Tentacruel': ['Blizzard', 'Surf', 'Wrap', 'Barrier'],
     'Golem': ['Earthquake', 'Rock Slide', 'Body Slam', 'Explosion'],
-    'Gengar': ['Psychic', 'Thunderbolt', 'Mega Drain', 'Hypnosis'],
-    'Dragonite': ['Thunderbolt', 'Ice Beam', 'Body Slam', 'Hyper Beam']
+    'Rapidash': ['Fire Spin', 'Fire Blast', 'Body Slam', 'Agility'],
+    'Slowbro': ['Surf', 'Amnesia', 'Thunder Wave', 'Rest'],
+    'Magneton': ['Thunderbolt', 'Thunder Wave', 'Double-Edge', 'Flash'],
+    'Farfetch\'d': ['Slash', 'Swords Dance', 'Agility', 'Body Slam'],
+    'Dodrio': ['Drill Peck', 'Body Slam', 'Hyper Beam', 'Agility'],
+    'Dewgong': ['Blizzard', 'Surf', 'Body Slam', 'Rest'],
+    'Muk': ['Sludge', 'Body Slam', 'Screech', 'Explosion'],
+    'Cloyster': ['Clamp', 'Blizzard', 'Surf', 'Explosion'],
+    'Gastly': ['Night Shade', 'Confuse Ray', 'Toxic', 'Psychic'],
+    'Haunter': ['Psychic', 'Thunderbolt', 'Confuse Ray', 'Explosion'],
+    'Gengar': ['Hypnosis', 'Explosion', 'Thunderbolt', 'Psychic'],
+    'Onix': ['Earthquake', 'Rock Slide', 'Bind', 'Explosion'],
+    'Hypno': ['Psychic', 'Thunder Wave', 'Hypnosis', 'Rest'],
+    'Kingler': ['Crabhammer', 'Swords Dance', 'Body Slam', 'Blizzard'],
+    'Electrode': ['Thunderbolt', 'Thunder Wave', 'Screen', 'Explosion'],
+    'Exeggutor': ['Psychic', 'Sleep Powder', 'Stun Spore', 'Explosion'],
+    'Marowak': ['Earthquake', 'Blizzard', 'Body Slam', 'Swords Dance'],
+    'Hitmonlee': ['High Jump Kick', 'Body Slam', 'Double-Edge', 'Meditate'],
+    'Hitmonchan': ['Fire Punch', 'Ice Punch', 'Thunder Punch', 'Submission'],
+    'Lickitung': ['Swords Dance', 'Body Slam', 'Earthquake', 'Hyper Beam'],
+    'Weezing': ['Sludge', 'Thunderbolt', 'Explosion', 'Haze'],
+    'Rhyhorn': ['Earthquake', 'Rock Slide', 'Body Slam', 'Substitute'],
+    'Rhydon': ['Earthquake', 'Rock Slide', 'Body Slam', 'Substitute'],
+    'Chansey': ['Ice Beam', 'Soft-Boiled', 'Thunder Wave', 'Sing'],
+    'Tangela': ['Sleep Powder', 'Stun Spore', 'Bind', 'Growth'],
+    'Kangaskhan': ['Body Slam', 'Earthquake', 'Rock Slide', 'Hyper Beam'],
+    'Horsea': ['Surf', 'Blizzard', 'Hydro Pump', 'Agility'],
+    'Seadra': ['Surf', 'Blizzard', 'Hydro Pump', 'Agility'],
+    'Goldeen': ['Waterfall', 'Blizzard', 'Agility', 'Double-Edge'],
+    'Seaking': ['Surf', 'Blizzard', 'Agility', 'Double-Edge'],
+    'Staryu': ['Surf', 'Thunderbolt', 'Recover', 'Minimize'],
+    'Starmie': ['Blizzard', 'Thunderbolt', 'Thunder Wave', 'Recover'],
+    'Mr. Mime': ['Psychic', 'Thunder Wave', 'Thunderbolt', 'Barrier'],
+    'Scyther': ['Slash', 'Swords Dance', 'Agility', 'Double-Edge'],
+    'Jynx': ['Blizzard', 'Psychic', 'Lovely Kiss', 'Body Slam'],
+    'Electabuzz': ['Thunderbolt', 'Thunder Wave', 'Psychic', 'Submission'],
+    'Magmar': ['Fire Blast', 'Confuse Ray', 'Body Slam', 'Psychic'],
+    'Pinsir': ['Swords Dance', 'Body Slam', 'Submission', 'Slash'],
+    'Tauros': ['Body Slam', 'Hyper Beam', 'Blizzard', 'Earthquake'],
+    'Gyarados': ['Hydro Pump', 'Thunderbolt', 'Body Slam', 'Hyper Beam'],
+    'Lapras': ['Blizzard', 'Thunderbolt', 'Body Slam', 'Sing'],
+    'Ditto': ['Transform'],
+    'Eevee': ['Double-Edge', 'Quick Attack', 'Reflect', 'Bite'],
+    'Vaporeon': ['Surf', 'Blizzard', 'Body Slam', 'Rest'],
+    'Jolteon': ['Thunderbolt', 'Thunder Wave', 'Double Kick', 'Pin Missile'],
+    'Flareon': ['Fire Blast', 'Body Slam', 'Hyper Beam', 'Quick Attack'],
+    'Porygon': ['Blizzard', 'Thunderbolt', 'Recover', 'Thunder Wave'],
+    'Omanyte': ['Surf', 'Blizzard', 'Ice Beam', 'Rest'],
+    'Omastar': ['Surf', 'Blizzard', 'Ice Beam', 'Rest'],
+    'Kabuto': ['Surf', 'Slash', 'Blizzard', 'Rest'],
+    'Kabutops': ['Swords Dance', 'Body Slam', 'Surf', 'Blizzard'],
+    'Aerodactyl': ['Sky Attack', 'Double-Edge', 'Fire Blast', 'Agility'],
+    'Snorlax': ['Body Slam', 'Hyper Beam', 'Earthquake', 'Self-Destruct'],
+    'Articuno': ['Blizzard', 'Agility', 'Double-Edge', 'Reflect'],
+    'Zapdos': ['Thunderbolt', 'Drill Peck', 'Thunder Wave', 'Agility'],
+    'Moltres': ['Fire Blast', 'Agility', 'Fire Spin', 'Double-Edge'],
+    'Dratini': ['Thunder Wave', 'Thunderbolt', 'Blizzard', 'Wrap'],
+    'Dragonair': ['Thunder Wave', 'Thunderbolt', 'Blizzard', 'Wrap'],
+    'Dragonite': ['Wrap', 'Agility', 'Blizzard', 'Hyper Beam'],
+    'Mewtwo': ['Psychic', 'Amnesia', 'Recover', 'Thunderbolt'],
+    'Mew': ['Swords Dance', 'Earthquake', 'Body Slam', 'Soft-Boiled']
   }
   
   return movesets[name] || ['STAB move', 'Coverage move', 'Status move', 'Recovery move']
