@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth'
+import { savedTeamSchema } from '@/lib/schemas'
+import { z } from 'zod'
 
 export async function GET(request: Request) {
   try {
@@ -27,10 +29,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { name, pokemonIds } = await request.json()
-    if (!name || !Array.isArray(pokemonIds)) {
-      return NextResponse.json({ error: 'Invalid name or team composition' }, { status: 400 })
+    const body = await request.json()
+    const validation = savedTeamSchema.safeParse(body)
+    if (!validation.success) {
+      return NextResponse.json({ error: 'Invalid name or team composition', details: validation.error.format() }, { status: 400 })
     }
+    const { name, pokemonIds } = validation.data
 
     const newTeam = await db.savedTeam.create({
       data: {
@@ -56,13 +60,15 @@ export async function DELETE(request: Request) {
 
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
-    if (!id) {
-      return NextResponse.json({ error: 'Missing team ID' }, { status: 400 })
+    const validation = z.string().trim().min(1).safeParse(id)
+    if (!validation.success) {
+      return NextResponse.json({ error: 'Missing or invalid team ID' }, { status: 400 })
     }
+    const validatedId = validation.data
 
     // Verify ownership
     const existing = await db.savedTeam.findFirst({
-      where: { id, userId: user.id }
+      where: { id: validatedId, userId: user.id }
     })
 
     if (!existing) {
@@ -70,7 +76,7 @@ export async function DELETE(request: Request) {
     }
 
     await db.savedTeam.delete({
-      where: { id }
+      where: { id: validatedId }
     })
 
     return NextResponse.json({ success: true })

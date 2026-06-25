@@ -2,9 +2,18 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   reactStrictMode: false,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'raw.githubusercontent.com',
+        pathname: '/**',
+      },
+    ],
+  },
   webpack: (config, { dev }) => {
     if (dev) {
       config.watchOptions = {
@@ -14,7 +23,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
 
   // V6 CSP: Configure HTTP Security Headers

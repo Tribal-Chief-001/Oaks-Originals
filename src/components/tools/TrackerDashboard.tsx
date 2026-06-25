@@ -1,4 +1,5 @@
 import React from 'react'
+import Image from 'next/image'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
@@ -78,7 +79,7 @@ export const TrackerDashboard: React.FC = () => {
                         : 'border-gray-200 bg-white'
                     }`}
                   >
-                    <img src={p.image} alt={p.name} className="w-10 h-10 mx-auto object-contain mb-1" />
+                    <Image src={p.image} alt={p.name} width={40} height={40} className="mx-auto object-contain mb-1" />
                     <p className="font-bold text-xxs truncate capitalize leading-none">{p.name}</p>
                     <p className="text-xxs text-gray-400 mt-0.5 font-semibold">#{p.id.toString().padStart(3, '0')}</p>
                     

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth'
+import { pokedexTrackerSchema } from '@/lib/schemas'
 
 export async function GET(request: Request) {
   try {
@@ -37,10 +38,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { pokemonId, seen, caught, shiny, notes } = await request.json()
-    if (typeof pokemonId !== 'number') {
-      return NextResponse.json({ error: 'Invalid Pokemon ID' }, { status: 400 })
+    const body = await request.json()
+    const validation = pokedexTrackerSchema.safeParse(body)
+    if (!validation.success) {
+      return NextResponse.json({ error: 'Invalid Pokemon ID or tracking data', details: validation.error.format() }, { status: 400 })
     }
+    const { pokemonId, seen, caught, shiny, notes } = validation.data
 
     const caughtDate = caught ? new Date() : null
 

@@ -42,6 +42,10 @@ export interface UISlice {
   setSoundEnabled: (val: boolean) => void
   setSoundVolume: (val: number) => void
   playCry: (pokemonId: number) => void
+  playClickSound: () => void
+  playSuccessSound: () => void
+  playErrorSound: () => void
+  setShowBattleArena: (val: boolean) => void
   setCalculatorAttackerId: (id: number | null) => void
   setCalculatorMoveName: (name: string | null) => void
 }

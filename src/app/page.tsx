@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
-import { Switch } from '@/components/ui/input' // wait, shadcn Switch is imported from "@/components/ui/switch"
+import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import { Switch as ShadcnSwitch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
@@ -15,18 +16,20 @@ import { usePokedexStore } from '@/hooks/usePokedexStore'
 import { PokedexGrid } from '@/components/pokedex/PokedexGrid'
 import { FilterPanel } from '@/components/pokedex/FilterPanel'
 import { DetailModal } from '@/components/pokedex/DetailModal'
-import { TeamBuilder } from '@/components/tools/TeamBuilder'
-import { DamageCalculator } from '@/components/tools/DamageCalculator'
-import { IvCalculator } from '@/components/tools/IvCalculator'
-import { TypeChart } from '@/components/tools/TypeChart'
-import { TrackerDashboard } from '@/components/tools/TrackerDashboard'
 import { AudioToggle } from '@/components/pokedex/AudioToggle'
-import { ItemsDirectory } from '@/components/tools/ItemsDirectory'
 import { supabase } from '@/lib/supabaseClient'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { toast } from '@/hooks/use-toast'
 import { OnboardingTour } from '@/components/ui/OnboardingTour'
-import { BattleArena } from '@/components/tools/BattleArena'
+
+// Dynamically import heavy tool modules to optimize bundle size
+const TeamBuilder = dynamic(() => import('@/components/tools/TeamBuilder').then(mod => mod.TeamBuilder), { ssr: false })
+const DamageCalculator = dynamic(() => import('@/components/tools/DamageCalculator').then(mod => mod.DamageCalculator), { ssr: false })
+const IvCalculator = dynamic(() => import('@/components/tools/IvCalculator').then(mod => mod.IvCalculator), { ssr: false })
+const TypeChart = dynamic(() => import('@/components/tools/TypeChart').then(mod => mod.TypeChart), { ssr: false })
+const TrackerDashboard = dynamic(() => import('@/components/tools/TrackerDashboard').then(mod => mod.TrackerDashboard), { ssr: false })
+const ItemsDirectory = dynamic(() => import('@/components/tools/ItemsDirectory').then(mod => mod.ItemsDirectory), { ssr: false })
+const BattleArena = dynamic(() => import('@/components/tools/BattleArena').then(mod => mod.BattleArena), { ssr: false })
 
 export default function Home() {
   const {
@@ -68,7 +71,9 @@ export default function Home() {
     // Auth
     user,
     setSession,
-    setShowBattleArena
+    setShowBattleArena,
+    showItemsDirectory,
+    setShowItemsDirectory
   } = usePokedexStore()
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
@@ -405,7 +410,7 @@ export default function Home() {
                   {compareList.map((p) => (
                     <div key={p.id} className={`p-4 rounded-lg border ${darkMode ? 'bg-gray-750' : 'bg-gray-50'}`}>
                       <div className="text-center">
-                        <img src={showShiny ? p.shinyImage : p.image} alt={p.name} className="w-28 h-28 object-contain mx-auto mb-2" />
+                        <Image src={showShiny ? p.shinyImage : p.image} alt={p.name} width={112} height={112} className="object-contain mx-auto mb-2" />
                         <h3 className="font-bold text-lg capitalize">{p.name}</h3>
                         <p className="text-xs text-gray-400 mb-3">#{p.id.toString().padStart(3, '0')}</p>
                       </div>

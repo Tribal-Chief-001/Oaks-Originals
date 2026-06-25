@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { X, Sword, Shield, Zap, Sparkles, Trophy, Users, Terminal } from "lucide-react";
 import { usePokedexStore, Pokemon } from "@/hooks/usePokedexStore";
-import { io, Socket } from "socket.io-client";
+import { supabase } from "@/lib/supabaseClient";
 
 interface BattlePokemon {
   id: number;
@@ -52,8 +53,7 @@ export const BattleArena: React.FC = () => {
   // PvP State
   const [pvpSearchState, setPvpSearchState] = useState<"idle" | "searching" | "connected" | "ended">("idle");
   const [pvpLog, setPvpLog] = useState<string[]>([]);
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [onlineCount, setOnlineCount] = useState(12);
+  const [onlineCount, setOnlineCount] = useState(1);
 
   // Auto-scroll logs
   useEffect(() => {
@@ -61,6 +61,35 @@ export const BattleArena: React.FC = () => {
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
     }
   }, [battleLog, pvpLog]);
+
+  // Real-time Presence sync with Supabase Realtime Channel
+  useEffect(() => {
+    if (activeTab !== "pvp" || !showBattleArena) return;
+
+    const channel = supabase.channel('arena-pvp-lobby', {
+      config: {
+        presence: {
+          key: `trainer-${Math.random().toString(36).substring(2, 11)}`,
+        },
+      },
+    });
+
+    channel
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        const count = Object.keys(state).length;
+        setOnlineCount(count > 0 ? count : 1);
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({ online_at: new Date().toISOString() });
+        }
+      });
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [activeTab, showBattleArena]);
 
   if (!showBattleArena) return null;
 
@@ -351,22 +380,41 @@ export const BattleArena: React.FC = () => {
     setIsAnimating(false);
   };
 
-  // Simulated PvP search
+  // Simulated PvP search with dynamic presence logic
   const startPvpSearch = () => {
     playClickSound();
     setPvpSearchState("searching");
-    setPvpLog(["Connecting to websocket matchmaking lobby...", "Searching for other trainers online..."]);
+    setPvpLog([
+      "Establishing connection to Supabase Realtime Channels...",
+      "Syncing presence keys with lobby...",
+      `Current active trainers online: ${onlineCount}`,
+      "Searching for opponent matchup..."
+    ]);
 
     const timer = setTimeout(() => {
       setPvpSearchState("connected");
       playSuccessSound();
-      setPvpLog(prev => [
-        ...prev,
-        "Connected to Arena-Server Channel #845",
-        "Opponent Trainer LANCE (Dragon Master) matched!",
-        "Lance sent out GYARADOS (#130)!",
-        "Go! Your first roster member is loaded!"
-      ]);
+      
+      const hasOtherPlayers = onlineCount > 1;
+      if (hasOtherPlayers) {
+        setPvpLog(prev => [
+          ...prev,
+          "Opponent match found!",
+          "Connected to real-time Battle Channel #204",
+          "Opponent Trainer RED matched!",
+          "Red sent out PIKACHU (#025)!",
+          "Go! Battle is synchronized!"
+        ]);
+      } else {
+        setPvpLog(prev => [
+          ...prev,
+          "No other human trainers found in matchmaking lobby.",
+          "Redirecting to AI practice match...",
+          "Opponent Trainer LANCE (Dragon Master) matched!",
+          "Lance sent out GYARADOS (#130)!",
+          "Go! Your first roster member is loaded!"
+        ]);
+      }
     }, 3500);
 
     return () => clearTimeout(timer);
@@ -493,10 +541,12 @@ export const BattleArena: React.FC = () => {
                         <Progress value={(aiTeam[activeAiIdx].hp / aiTeam[activeAiIdx].maxHp) * 100} className="h-2 bg-gray-850 mt-1" />
                       </div>
                       <div className="flex justify-end mt-2">
-                        <img 
+                        <Image 
                           src={aiTeam[activeAiIdx].image} 
                           alt={aiTeam[activeAiIdx].name}
-                          className="w-24 h-24 object-contain scale-x-[-1] drop-shadow-[0_0_12px_rgba(239,68,68,0.2)]" 
+                          width={96}
+                          height={96}
+                          className="object-contain scale-x-[-1] drop-shadow-[0_0_12px_rgba(239,68,68,0.2)]" 
                         />
                       </div>
                     </div>
@@ -512,10 +562,12 @@ export const BattleArena: React.FC = () => {
                         <Progress value={(playerTeam[activePlayerIdx].hp / playerTeam[activePlayerIdx].maxHp) * 100} className="h-2 bg-gray-850 mt-1" />
                       </div>
                       <div className="flex justify-start mt-2">
-                        <img 
+                        <Image 
                           src={playerTeam[activePlayerIdx].image} 
                           alt={playerTeam[activePlayerIdx].name}
-                          className="w-24 h-24 object-contain drop-shadow-[0_0_12px_rgba(59,130,246,0.2)]" 
+                          width={96}
+                          height={96}
+                          className="object-contain drop-shadow-[0_0_12px_rgba(59,130,246,0.2)]" 
                         />
                       </div>
                     </div>
@@ -610,7 +662,7 @@ export const BattleArena: React.FC = () => {
                   </div>
                   <h3 className="text-2xl font-bold">Trainer PvP Lobby</h3>
                   <p className="text-sm text-gray-400">
-                    Search and match with other active trainers online using our WebSocket server channel sync. Battle in real-time over the network!
+                    Search and match with other active trainers online using our Supabase Realtime channel sync. Battle in real-time over the network!
                   </p>
                   <Button
                     onClick={startPvpSearch}

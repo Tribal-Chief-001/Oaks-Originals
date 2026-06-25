@@ -3,10 +3,11 @@ import { db } from '@/lib/db'
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const pokemonId = parseInt(params.id)
+    const { id } = await params;
+    const pokemonId = parseInt(id)
     if (isNaN(pokemonId)) {
       return NextResponse.json({ error: 'Invalid Pokemon ID' }, { status: 400 })
     }

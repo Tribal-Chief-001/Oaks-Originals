@@ -1,10 +1,11 @@
 import React from 'react'
+import Image from 'next/image'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { X } from 'lucide-react'
-import { usePokedexStore, Pokemon } from '@/hooks/usePokedexStore'
+import { usePokedexStore, Pokemon, SavedTeam } from '@/hooks/usePokedexStore'
 
 export const TeamBuilder: React.FC = () => {
   const {
@@ -200,7 +201,7 @@ export const TeamBuilder: React.FC = () => {
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
-                    <img src={poke.image} alt={poke.name} className="w-16 h-16 mx-auto object-contain mb-1" />
+                    <Image src={poke.image} alt={poke.name} width={64} height={64} className="mx-auto object-contain mb-1" />
                     <p className="font-bold text-xs capitalize truncate">{poke.name}</p>
                     <div className="flex justify-center gap-1 mt-1">
                       {poke.types.map(t => (

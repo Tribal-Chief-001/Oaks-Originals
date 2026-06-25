@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -523,7 +524,7 @@ export const IvCalculator: React.FC = () => {
 
                   {parentA && (
                     <div className="text-center space-y-2 animate-in fade-in duration-300">
-                      <img src={parentA.image} alt={parentA.name} className="w-24 h-24 object-contain mx-auto bg-white/10 dark:bg-black/10 rounded-full p-2 border border-gray-200/20" />
+                      <Image src={parentA.image} alt={parentA.name} width={96} height={96} className="object-contain mx-auto bg-white/10 dark:bg-black/10 rounded-full p-2 border border-gray-200/20" />
                       <p className="font-bold text-md capitalize">{parentA.name}</p>
                       <p className="text-xxs text-gray-400 capitalize">Groups: {parentA.eggGroups?.join(', ') || 'None'}</p>
 
@@ -532,9 +533,9 @@ export const IvCalculator: React.FC = () => {
                           <Button
                             key={g}
                             variant={genderA === g ? 'default' : 'outline'}
-                            size="xs"
+                            size="sm"
                             onClick={() => setGenderA(g)}
-                            className="text-xxs"
+                            className="text-xxs h-7 px-2"
                           >
                             {g === 'Male' ? '♂️ Male' : g === 'Female' ? '♀️ Female' : '⚪ Genderless'}
                           </Button>
@@ -560,7 +561,7 @@ export const IvCalculator: React.FC = () => {
 
                   {parentB && (
                     <div className="text-center space-y-2 animate-in fade-in duration-300">
-                      <img src={parentB.image} alt={parentB.name} className="w-24 h-24 object-contain mx-auto bg-white/10 dark:bg-black/10 rounded-full p-2 border border-gray-200/20" />
+                      <Image src={parentB.image} alt={parentB.name} width={96} height={96} className="object-contain mx-auto bg-white/10 dark:bg-black/10 rounded-full p-2 border border-gray-200/20" />
                       <p className="font-bold text-md capitalize">{parentB.name}</p>
                       <p className="text-xxs text-gray-400 capitalize">Groups: {parentB.eggGroups?.join(', ') || 'None'}</p>
 
@@ -569,9 +570,9 @@ export const IvCalculator: React.FC = () => {
                           <Button
                             key={g}
                             variant={genderB === g ? 'default' : 'outline'}
-                            size="xs"
+                            size="sm"
                             onClick={() => setGenderB(g)}
-                            className="text-xxs"
+                            className="text-xxs h-7 px-2"
                           >
                             {g === 'Male' ? '♂️ Male' : g === 'Female' ? '♀️ Female' : '⚪ Genderless'}
                           </Button>
@@ -595,7 +596,7 @@ export const IvCalculator: React.FC = () => {
                       {offspring && (
                         <div className="max-w-xs mx-auto border rounded-xl p-4 shadow-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 mt-4 animate-in slide-in-from-bottom duration-500">
                           <h5 className="font-bold text-xs uppercase text-gray-400 mb-1">Expected Egg Offspring</h5>
-                          <img src={offspring.image} alt={offspring.name} className="w-16 h-16 object-contain mx-auto bg-gray-100 dark:bg-gray-900 rounded p-1 mb-2" />
+                          <Image src={offspring.image} alt={offspring.name} width={64} height={64} className="object-contain mx-auto bg-gray-100 dark:bg-gray-900 rounded p-1 mb-2" />
                           <p className="font-bold text-sm capitalize">{offspring.name}</p>
                           <div className="mt-2 text-xxs text-gray-400 space-y-1">
                             <p>Egg Cycles: {offspring.eggCycles || 20} cycles</p>
@@ -730,7 +731,7 @@ export const IvCalculator: React.FC = () => {
               {hunterTarget && (
                 <div className="text-center p-4 border border-dashed rounded-lg border-gray-250 flex items-center justify-center gap-4">
                   <div className="relative">
-                    <img src={hunterTarget.image} alt={hunterTarget.name} className="w-16 h-16 object-contain" />
+                    <Image src={hunterTarget.image} alt={hunterTarget.name} width={64} height={64} className="object-contain" />
                     <span className="absolute -top-1 -right-1 text-xs">🔍</span>
                   </div>
                   <div className="text-left">

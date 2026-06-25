@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -217,7 +218,7 @@ export const DamageCalculator: React.FC = () => {
               </select>
               {attacker && (
                 <div className="flex items-center gap-3">
-                  <img src={attacker.image} alt={attacker.name} className="w-12 h-12 object-contain" />
+                   <Image src={attacker.image} alt={attacker.name} width={48} height={48} className="object-contain" />
                   <div>
                     <p className="font-bold capitalize">{attacker.name}</p>
                     <div className="flex gap-1 mt-0.5">
@@ -245,7 +246,7 @@ export const DamageCalculator: React.FC = () => {
               </select>
               {defender && (
                 <div className="flex items-center gap-3">
-                  <img src={defender.image} alt={defender.name} className="w-12 h-12 object-contain" />
+                   <Image src={defender.image} alt={defender.name} width={48} height={48} className="object-contain" />
                   <div>
                     <p className="font-bold capitalize">{defender.name}</p>
                     <div className="flex gap-1 mt-0.5">

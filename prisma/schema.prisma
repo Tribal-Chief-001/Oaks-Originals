@@ -56,6 +56,7 @@ model Favorite {
   createdAt DateTime @default(now())
 
   @@unique([userId, pokemonId])
+  @@index([userId])
 }
 
 model PokedexTracker {
@@ -71,6 +72,7 @@ model PokedexTracker {
   updatedAt  DateTime  @updatedAt
 
   @@unique([userId, pokemonId])
+  @@index([userId])
 }
 
 model SavedTeam {
@@ -79,6 +81,8 @@ model SavedTeam {
   name       String
   pokemonIds Int[]
   createdAt  DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Move {

@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
+import Image from 'next/image'
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Heart, Plus, Users } from 'lucide-react'
 import { usePokedexStore, Pokemon } from '@/hooks/usePokedexStore'
 import { HolographicFoil } from './HolographicFoil'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 
 interface PokemonCardProps {
   pokemon: Pokemon
@@ -164,26 +166,33 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
           <div className={`absolute inset-0 rounded-lg ${darkMode ? 'bg-gradient-to-br from-gray-700 to-gray-800' : 'bg-gradient-to-br from-blue-50 to-indigo-100'}`} />
           
           {showShiny && (
-            <HolographicFoil isHovered={isHovered} mousePos={{ x: tilt.x / 8, y: tilt.y / 8 }} />
+            <ErrorBoundary name="HolographicFoil" fallback={null}>
+              <HolographicFoil isHovered={isHovered} mousePos={{ x: tilt.x / 8, y: tilt.y / 8 }} />
+            </ErrorBoundary>
           )}
 
           <div className="relative w-full h-48 flex items-center justify-center bg-transparent rounded-lg overflow-hidden">
             {/* Static Image */}
-            <img
+            <Image
               src={showShiny ? pokemon.shinyImage : pokemon.image}
               alt={pokemon.name}
+              width={144}
+              height={144}
               className={`absolute w-36 h-36 object-contain transition-opacity duration-300 ${
                 isHovered && hasAnimation ? 'opacity-0' : 'opacity-100'
               }`}
             />
             {/* Animated GIF */}
             {hasAnimation && (
-              <img
-                src={showShiny ? pokemon.animatedShinyImage : pokemon.animatedImage || ''}
+              <Image
+                src={(showShiny ? pokemon.animatedShinyImage : pokemon.animatedImage) || ''}
                 alt={`${pokemon.name} animation`}
+                width={96}
+                height={96}
                 className={`absolute w-24 h-24 object-contain transition-opacity duration-300 ${
                   isHovered ? 'opacity-100' : 'opacity-0'
                 }`}
+                unoptimized
               />
             )}
           </div>

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth'
+import { favoriteSchema } from '@/lib/schemas'
 
 export async function GET(request: Request) {
   try {
@@ -26,10 +27,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { pokemonId } = await request.json()
-    if (typeof pokemonId !== 'number') {
-      return NextResponse.json({ error: 'Invalid Pokemon ID' }, { status: 400 })
+    const body = await request.json()
+    const validation = favoriteSchema.safeParse(body)
+    if (!validation.success) {
+      return NextResponse.json({ error: 'Invalid Pokemon ID', details: validation.error.format() }, { status: 400 })
     }
+    const { pokemonId } = validation.data
 
     // Toggle logic with composite key
     const existing = await db.favorite.findUnique({

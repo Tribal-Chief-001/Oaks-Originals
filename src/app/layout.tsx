@@ -48,11 +48,30 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Oak's Originals - Kanto Pokédex",
+    "description": "Professor Oak's personal collection of the original 151 Pokémon. Complete Kanto region Pokédex with advanced search, filtering, and detailed information.",
+    "url": "https://oaks-originals.vercel.app",
+    "applicationCategory": "ReferenceApplication",
+    "operatingSystem": "All",
+    "browserRequirements": "Requires JavaScript. Requires HTML5.",
+    "author": {
+      "@type": "Person",
+      "name": "Xandred"
+    }
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <RegisterSW />
         {children}
         <Toaster />

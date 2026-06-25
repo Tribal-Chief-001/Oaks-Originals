@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -394,9 +395,11 @@ export const DetailModal: React.FC = () => {
                 {/* Holographic foil Reacting to cursor tilt */}
                 <HolographicFoil isHovered={isArtworkHovered} mousePos={{ x: tilt.x / 8, y: tilt.y / 8 }} />
 
-                <img
+                <Image
                   src={showShiny ? selectedPokemon.shinyImage : selectedPokemon.image}
                   alt={selectedPokemon.name}
+                  width={213}
+                  height={213}
                   className="w-[82%] h-[82%] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.15)] group-hover:scale-105 transition-transform duration-300 relative z-20"
                 />
               </div>
@@ -690,7 +693,7 @@ export const DetailModal: React.FC = () => {
                       {selectedPokemon.evolutionChain.map((evo, idx) => (
                         <React.Fragment key={evo.id}>
                           <div className="rounded-xl p-4 text-center min-w-[120px] border border-zinc-200/20 dark:border-zinc-850 bg-white dark:bg-zinc-900 shadow-sm flex flex-col items-center">
-                            <img src={evo.image} alt={evo.name} className="w-16 h-16 object-contain mb-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.1)]" />
+                            <Image src={evo.image} alt={evo.name} width={64} height={64} className="object-contain mb-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.1)]" />
                             <p className="font-bold text-xs capitalize">{evo.name}</p>
                             <p className="text-xxs text-zinc-500 font-mono mt-0.5">#{evo.id.toString().padStart(3, '0')}</p>
                           </div>
